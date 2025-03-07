@@ -120,7 +120,100 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  username: 'username',
   password: 'password',
+  firstName: 'firstName',
+  lastName: 'lastName',
+  avatar: 'avatar',
+  bio: 'bio',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  isActive: 'isActive'
+};
+
+exports.Prisma.UserPreferenceScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  preferredGenres: 'preferredGenres',
+  dislikedGenres: 'dislikedGenres',
+  minRating: 'minRating',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.MediaScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  releaseDate: 'releaseDate',
+  mediaType: 'mediaType',
+  genres: 'genres',
+  coverImage: 'coverImage',
+  backgroundImage: 'backgroundImage',
+  creator: 'creator',
+  duration: 'duration',
+  chapters: 'chapters',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RatingScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  mediaId: 'mediaId',
+  score: 'score',
+  review: 'review',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.UserListScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  description: 'description',
+  isPublic: 'isPublic',
+  userId: 'userId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ListItemScalarFieldEnum = {
+  id: 'id',
+  listId: 'listId',
+  mediaId: 'mediaId',
+  note: 'note',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.RecommendationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  mediaId: 'mediaId',
+  score: 'score',
+  reason: 'reason',
+  isViewed: 'isViewed',
+  isSaved: 'isSaved',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.NotificationScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  type: 'type',
+  message: 'message',
+  isRead: 'isRead',
+  metadata: 'metadata',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.RefreshTokenScalarFieldEnum = {
+  id: 'id',
+  token: 'token',
+  userId: 'userId',
+  expiresAt: 'expiresAt',
   createdAt: 'createdAt'
 };
 
@@ -129,14 +222,48 @@ exports.Prisma.SortOrder = {
   desc: 'desc'
 };
 
+exports.Prisma.NullableJsonNullValueInput = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull
+};
+
 exports.Prisma.QueryMode = {
   default: 'default',
   insensitive: 'insensitive'
 };
 
+exports.Prisma.NullsOrder = {
+  first: 'first',
+  last: 'last'
+};
+
+exports.Prisma.JsonNullValueFilter = {
+  DbNull: Prisma.DbNull,
+  JsonNull: Prisma.JsonNull,
+  AnyNull: Prisma.AnyNull
+};
+exports.MediaType = exports.$Enums.MediaType = {
+  MOVIE: 'MOVIE',
+  GAME: 'GAME',
+  MANGA: 'MANGA'
+};
+
+exports.NotificationType = exports.$Enums.NotificationType = {
+  NEW_RECOMMENDATION: 'NEW_RECOMMENDATION',
+  MEDIA_UPDATE: 'MEDIA_UPDATE',
+  LIST_ITEM_ADDED: 'LIST_ITEM_ADDED'
+};
 
 exports.Prisma.ModelName = {
-  User: 'User'
+  User: 'User',
+  UserPreference: 'UserPreference',
+  Media: 'Media',
+  Rating: 'Rating',
+  UserList: 'UserList',
+  ListItem: 'ListItem',
+  Recommendation: 'Recommendation',
+  Notification: 'Notification',
+  RefreshToken: 'RefreshToken'
 };
 
 /**

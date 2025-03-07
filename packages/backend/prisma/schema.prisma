@@ -20,13 +20,11 @@ enum MediaType {
   MANGA
 }
 
-
 enum NotificationType {
   NEW_RECOMMENDATION
   MEDIA_UPDATE
   LIST_ITEM_ADDED
 }
-
 
 model User {
   id             String          @id @default(uuid())
@@ -85,7 +83,7 @@ model Rating {
   id        String   @id @default(uuid())
   userId    String
   mediaId   String
-  score     Float    // 1-5 rating
+  score     Float    // 1-10 rating
   review    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
