@@ -1,3 +1,4 @@
+// src/app.ts
 import express, { Application } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
@@ -5,13 +6,13 @@ import compression from 'compression';
 import cookieParser from 'cookie-parser';
 import { json, urlencoded } from 'body-parser';
 
-// import { errorMiddleware } from './api/middlewares/error.middleware';
-// import logger from './config/logger';
-// import authRoutes from './api/routes/auth.routes';
-// import mediaRoutes from './api/routes/media.routes';
-// import ratingRoutes from './api/routes/rating.routes';
-// import recommendationRoutes from './api/routes/recommendation.routes';
-// import userListRoutes from './api/routes/userList.routes';
+import { errorMiddleware } from './api/middlewares/error.middleware';
+import logger from './config/logger';
+import authRoutes from './api/routes/auth.routes';
+import mediaRoutes from './api/routes/media.routes';
+import ratingRoutes from './api/routes/rating.routes';
+import recommendationRoutes from './api/routes/recommendation.routes';
+import userListRoutes from './api/routes/userList.routes';
 
 class App {
   public app: Application;
@@ -49,14 +50,14 @@ class App {
   }
 
   private configureRoutes(): void {
-    // this.app.use('/api/auth', authRoutes);
-    // this.app.use('/api/media', mediaRoutes);
-    // this.app.use('/api/ratings', ratingRoutes);
-    // this.app.use('/api/recommendations', recommendationRoutes);
-    // this.app.use('/api/lists', userListRoutes);
+    this.app.use('/api/auth', authRoutes);
+    this.app.use('/api/media', mediaRoutes);
+    this.app.use('/api/ratings', ratingRoutes);
+    this.app.use('/api/recommendations', recommendationRoutes);
+    this.app.use('/api/lists', userListRoutes);
 
     // Health check route
-    this.app.get('/health', (_req, res) => {
+    this.app.get('/health', (req, res) => {
       res
         .status(200)
         .json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -65,7 +66,7 @@ class App {
 
   private configureErrorHandling(): void {
     // 404 handler
-    this.app.use((req, res, _next) => {
+    this.app.use((req, res, next) => {
       res.status(404).json({
         status: 'error',
         message: `Cannot ${req.method} ${req.path}`,
