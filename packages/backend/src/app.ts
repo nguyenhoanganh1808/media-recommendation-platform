@@ -1,81 +1,120 @@
-// src/app.ts
-import express, { Application } from 'express';
-import helmet from 'helmet';
+import express, { Application, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
 import compression from 'compression';
+import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
-import { json, urlencoded } from 'body-parser';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsdoc from 'swagger-jsdoc';
+import { PrismaClient } from '@prisma/client';
 
-import { errorMiddleware } from './api/middlewares/error.middleware';
-import logger from './config/logger';
-import authRoutes from './api/routes/auth.routes';
-// import mediaRoutes from './api/routes/media.routes';
-// import ratingRoutes from './api/routes/rating.routes';
-// import recommendationRoutes from './api/routes/recommendation.routes';
-// import userListRoutes from './api/routes/userList.routes';
+// Import configurations
+import { config } from './config/env';
+import { logger } from './config/logger';
+// import { errorHandler } from './middlewares/error.middleware';
+// import { rateLimiter } from './middlewares/rateLimiter.middleware';
 
-class App {
-  public app: Application;
+// Import routes
+// import authRoutes from './api/auth/auth.routes';
+// import userRoutes from './api/users/users.routes';
+// import mediaRoutes from './api/media/media.routes';
+// import ratingRoutes from './api/ratings/ratings.routes';
+// import reviewRoutes from './api/media/media.routes';
+// import listRoutes from './api/lists/lists.routes';
+// import recommendationRoutes from './api/recommendations/recommendations.routes';
+// import notificationRoutes from './api/notifications/notifications.routes';
 
-  constructor() {
-    this.app = express();
-    this.configureMiddlewares();
-    this.configureRoutes();
-    this.configureErrorHandling();
-  }
+// Initialize Prisma Client
+export const prisma = new PrismaClient();
 
-  private configureMiddlewares(): void {
-    // Security middlewares
-    this.app.use(helmet());
-    this.app.use(
-      cors({
-        origin: process.env.CORS_ORIGIN || '*',
-        credentials: true,
-      })
-    );
+// Initialize Express application
+const app: Application = express();
 
-    // Parsing middlewares
-    this.app.use(json({ limit: '10mb' }));
-    this.app.use(urlencoded({ extended: true, limit: '10mb' }));
-    this.app.use(cookieParser());
+// Swagger documentation options
+const swaggerOptions = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'Media Recommendation API',
+      version: '1.0.0',
+      description: 'API for a media recommendation platform',
+    },
+    servers: [
+      {
+        url: `http://localhost:${config.PORT}`,
+        description: 'Development server',
+      },
+    ],
+  },
+  apis: ['./src/api/**/*.routes.ts', './src/api/**/*.validation.ts'],
+};
 
-    // Performance middleware
-    this.app.use(compression());
+const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
-    // Logging middleware
-    this.app.use((req, res, next) => {
-      logger.info(`${req.method} ${req.path}`);
-      next();
-    });
-  }
+// Middleware
+app.use(
+  cors({
+    origin: config.CORS_ORIGIN,
+    credentials: true,
+  })
+);
+app.use(helmet());
+app.use(compression());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cookieParser());
 
-  private configureRoutes(): void {
-    this.app.use('/api/auth', authRoutes);
-    // this.app.use('/api/media', mediaRoutes);
-    // this.app.use('/api/ratings', ratingRoutes);
-    // this.app.use('/api/recommendations', recommendationRoutes);
-    // this.app.use('/api/lists', userListRoutes);
+// Rate limiting
+// if (config.NODE_ENV === 'production') {
+//   app.use(rateLimiter);
+// }
 
-    // Health check route
-    this.app.get('/health', (req, res) => {
-      res
-        .status(200)
-        .json({ status: 'ok', timestamp: new Date().toISOString() });
-    });
-  }
-
-  private configureErrorHandling(): void {
-    // 404 handler
-    this.app.use((req, res, next) => {
-      res.status(404).json({
-        status: 'error',
-        message: `Cannot ${req.method} ${req.path}`,
-      });
-    });
-
-    // Global error handler
-    this.app.use(errorMiddleware);
-  }
+// Logging
+if (config.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+} else {
+  app.use(
+    morgan('combined', {
+      stream: { write: (message) => logger.info(message.trim()) },
+    })
+  );
 }
 
-export default new App().app;
+// Health check endpoint
+app.get('/health', (req: Request, res: Response) => {
+  res
+    .status(200)
+    .json({ status: 'success', message: 'API is running', data: null });
+});
+
+// API documentation
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// API routes
+// app.use('/api/v1/auth', authRoutes);
+// app.use('/api/v1/users', userRoutes);
+// app.use('/api/v1/media', mediaRoutes);
+// app.use('/api/v1/ratings', ratingRoutes);
+// app.use('/api/v1/reviews', reviewRoutes);
+// app.use('/api/v1/lists', listRoutes);
+// app.use('/api/v1/recommendations', recommendationRoutes);
+// app.use('/api/v1/notifications', notificationRoutes);
+
+// 404 handler
+app.all('*', (req: Request, res: Response) => {
+  res.status(404).json({
+    status: 'error',
+    message: `Can't find ${req.originalUrl} on this server!`,
+  });
+});
+
+// Global error handler
+// app.use(errorHandler);
+
+// Handle graceful shutdown
+process.on('exit', async () => {
+  await prisma.$disconnect();
+  logger.info('Disconnected from database');
+});
+
+export default app;

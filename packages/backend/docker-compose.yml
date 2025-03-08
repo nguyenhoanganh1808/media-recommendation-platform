@@ -1,32 +1,27 @@
-version: "3.7"
-
+version: '3.8'
 services:
   postgres:
     image: postgres:15
-    restart: always
+    hostname: postgres_db
+    container_name: postgres_db
     environment:
-      - POSTGRES_DB=media_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=zoddstorm
+      POSTGRES_USER: zodd
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: media_db
     ports:
-      - "5433:5432"
+      - '5433:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - media-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d media_db"]
+      test: ['CMD-SHELL', 'pg_isready -U zodd -d media_db']
       interval: 5s
       timeout: 2s
       retries: 20
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    command: postgres -c listen_addresses='*'
-    logging:
-      options:
-        max-size: "10m"
-        max-file: "3"
-
-networks:
-  media-network:
 
 volumes:
   postgres_data:
+networks:
+  media-network:
+    name: media-network

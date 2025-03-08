@@ -1,50 +1,38 @@
 import app from './app';
-import { PrismaClient } from '@prisma/client';
-import logger from './config/logger';
-import { createRedisClient } from './config/cache';
+import { logger } from './config/logger';
+import { config } from './config/env';
 
-const prisma = new PrismaClient();
-const PORT = process.env.PORT || 3000;
+const PORT = config.PORT || 3000;
 
-async function startServer() {
-  try {
-    // Connect to the database
-    await prisma.$connect();
-    logger.info('Connected to the database successfully');
+const server = app.listen(PORT, () => {
+  logger.info(`🚀 Server started on port ${PORT} in ${config.NODE_ENV} mode`);
+  logger.info(
+    `🔗 API Documentation available at http://localhost:${PORT}/api-docs`
+  );
+});
 
-    // Initialize Redis connection
-    await createRedisClient();
-    logger.info('Connected to Redis successfully');
-
-    // Start the server
-    app.listen(PORT, () => {
-      logger.info(`Server is running on port ${PORT}`);
-    });
-  } catch (error) {
-    logger.error('Failed to start server:', error);
-    await prisma.$disconnect();
+// Handle unhandled promise rejections
+process.on('unhandledRejection', (err: Error) => {
+  logger.error('UNHANDLED REJECTION! 💥 Shutting down...');
+  logger.error(err.name, err.message);
+  server.close(() => {
     process.exit(1);
-  }
-}
+  });
+});
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
-  logger.error('Uncaught Exception:', error);
+process.on('uncaughtException', (err: Error) => {
+  logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+  logger.error(err.name, err.message);
   process.exit(1);
 });
 
-// Handle unhandled rejections
-process.on('unhandledRejection', (reason, promise) => {
-  logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
+// Handle SIGTERM signal
+process.on('SIGTERM', () => {
+  logger.info('👋 SIGTERM RECEIVED. Shutting down gracefully');
+  server.close(() => {
+    logger.info('💥 Process terminated!');
+  });
 });
 
-// Handle termination signals
-process.on('SIGTERM', async () => {
-  logger.info('SIGTERM received. Shutting down gracefully');
-  await prisma.$disconnect();
-  process.exit(0);
-});
-
-startServer();
-
-export { prisma };
+export default server;
