@@ -5,6 +5,7 @@ import { prisma } from '../../server';
 import ENV from '../../config/env';
 import logger from '../../config/logger';
 import { AuthTokenPayload } from '../../types/auth.types';
+import { Role } from '@prisma/client';
 
 // Extend Express Request type to include user
 declare global {
@@ -62,21 +63,17 @@ export const authenticate = async (
     next();
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      res
-        .status(401)
-        .json({
-          status: 'error',
-          message: 'Token expired',
-          code: 'TOKEN_EXPIRED',
-        });
+      res.status(401).json({
+        status: 'error',
+        message: 'Token expired',
+        code: 'TOKEN_EXPIRED',
+      });
     } else if (error instanceof jwt.JsonWebTokenError) {
-      res
-        .status(401)
-        .json({
-          status: 'error',
-          message: 'Invalid token',
-          code: 'INVALID_TOKEN',
-        });
+      res.status(401).json({
+        status: 'error',
+        message: 'Invalid token',
+        code: 'INVALID_TOKEN',
+      });
     } else {
       logger.error('Authentication error:', error);
       res
@@ -102,10 +99,10 @@ export const authorizeAdmin = async (
     // Check if user is an admin (You'll need to add an isAdmin field to your User model)
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, isAdmin: true },
+      select: { id: true, role: true },
     });
 
-    if (!user || !user.isAdmin) {
+    if (!user || !user.role.includes(Role.ADMIN)) {
       res
         .status(403)
         .json({ status: 'error', message: 'Admin privileges required' });

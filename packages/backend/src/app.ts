@@ -9,10 +9,10 @@ import { json, urlencoded } from 'body-parser';
 import { errorMiddleware } from './api/middlewares/error.middleware';
 import logger from './config/logger';
 import authRoutes from './api/routes/auth.routes';
-import mediaRoutes from './api/routes/media.routes';
-import ratingRoutes from './api/routes/rating.routes';
-import recommendationRoutes from './api/routes/recommendation.routes';
-import userListRoutes from './api/routes/userList.routes';
+// import mediaRoutes from './api/routes/media.routes';
+// import ratingRoutes from './api/routes/rating.routes';
+// import recommendationRoutes from './api/routes/recommendation.routes';
+// import userListRoutes from './api/routes/userList.routes';
 
 class App {
   public app: Application;
@@ -51,10 +51,10 @@ class App {
 
   private configureRoutes(): void {
     this.app.use('/api/auth', authRoutes);
-    this.app.use('/api/media', mediaRoutes);
-    this.app.use('/api/ratings', ratingRoutes);
-    this.app.use('/api/recommendations', recommendationRoutes);
-    this.app.use('/api/lists', userListRoutes);
+    // this.app.use('/api/media', mediaRoutes);
+    // this.app.use('/api/ratings', ratingRoutes);
+    // this.app.use('/api/recommendations', recommendationRoutes);
+    // this.app.use('/api/lists', userListRoutes);
 
     // Health check route
     this.app.get('/health', (req, res) => {

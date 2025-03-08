@@ -16,7 +16,7 @@ export const validate = (validations: ValidationChain[]) => {
 
     // Format validation errors
     const formattedErrors = errors.array().map((error) => ({
-      field: error.param,
+      field: (error as any).param,
       message: error.msg,
     }));
 

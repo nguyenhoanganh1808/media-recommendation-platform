@@ -1,10 +1,8 @@
-// src/api/middlewares/rateLimit.middleware.ts
 import rateLimit from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { createRedisClient } from '../../config/cache';
 import logger from '../../config/logger';
 
-// Create a Redis client for rate limiting
 const setupRateLimitStore = async () => {
   try {
     const redisClient = await createRedisClient();
@@ -47,8 +45,8 @@ export const authLimiter = rateLimit({
 (async () => {
   const store = await setupRateLimitStore();
   if (store) {
-    apiLimiter.store = store;
-    authLimiter.store = store;
+    (apiLimiter as any).store = store;
+    (authLimiter as any).store = store;
     logger.info('Rate limiting using Redis store initialized');
   } else {
     logger.warn('Rate limiting using memory store (Redis not available)');
