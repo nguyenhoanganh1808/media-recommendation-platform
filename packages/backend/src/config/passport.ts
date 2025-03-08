@@ -51,7 +51,7 @@ passport.use(
   new JwtStrategy(
     {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.JWT_SECRET,
+      secretOrKey: config.JWT_SECRET!,
     },
     async (jwtPayload, done) => {
       try {
@@ -81,7 +81,7 @@ passport.use(
   new JwtStrategy(
     {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.JWT_REFRESH_SECRET,
+      secretOrKey: config.JWT_REFRESH_SECRET!,
     },
     async (jwtPayload, done) => {
       try {

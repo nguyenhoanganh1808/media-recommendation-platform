@@ -1,0 +1,15 @@
+{
+    "keep": {
+        "days": true,
+        "amount": 14
+    },
+    "auditLog": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\.10085f72ddbbe0eaad6103bfcf90974c8f87965f-audit.json",
+    "files": [
+        {
+            "date": 1741423198336,
+            "name": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\application-2025-03-08.log",
+            "hash": "a499dd779f7bcabfef48963b441413f29d1a9d7f2755e31e22e08507318e4a85"
+        }
+    ],
+    "hashType": "sha256"
+}

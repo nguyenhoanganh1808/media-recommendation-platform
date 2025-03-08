@@ -11,8 +11,8 @@ import { PrismaClient } from '@prisma/client';
 // Import configurations
 import { config } from './config/env';
 import { logger } from './config/logger';
-// import { errorHandler } from './middlewares/error.middleware';
-// import { rateLimiter } from './middlewares/rateLimiter.middleware';
+import { errorHandler } from './middlewares/error.middleware';
+import { rateLimiter } from './middlewares/rateLimiter.middleware';
 
 // Import routes
 // import authRoutes from './api/auth/auth.routes';
@@ -65,9 +65,9 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // Rate limiting
-// if (config.NODE_ENV === 'production') {
-//   app.use(rateLimiter);
-// }
+if (config.NODE_ENV === 'production') {
+  app.use(rateLimiter);
+}
 
 // Logging
 if (config.NODE_ENV === 'development') {
@@ -109,7 +109,7 @@ app.all('*', (req: Request, res: Response) => {
 });
 
 // Global error handler
-// app.use(errorHandler);
+app.use(errorHandler);
 
 // Handle graceful shutdown
 process.on('exit', async () => {
