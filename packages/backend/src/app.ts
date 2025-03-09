@@ -1,4 +1,10 @@
-import express, { Application, Request, Response, NextFunction } from 'express';
+import express, {
+  Application,
+  Request,
+  Response,
+  NextFunction,
+  Express,
+} from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -30,7 +36,7 @@ import { disconnectRedis } from './config/redis';
 // Initialize Prisma Client
 
 // Initialize Express application
-const app: Application = express();
+const app: Express = express();
 
 // Swagger documentation options
 const swaggerOptions = {

@@ -5,7 +5,10 @@
     "strict": true,
     "esModuleInterop": true,
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": ".",
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "include": ["src/**/*", "src/types/**/*.d.ts"]
+  "include": ["src/**/*", "src/types/**/*.d.ts", "test/**/*"],
+  "exclude": ["node_modules"]
 }
