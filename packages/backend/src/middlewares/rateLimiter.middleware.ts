@@ -77,7 +77,7 @@ export const userRateLimiter = (
     legacyHeaders: false,
     keyGenerator: (req: Request) => {
       // Use user ID as the rate limiting key if authenticated
-      return req.user?.id || req.ip!;
+      return (req.user as any).id || req.ip || '';
     },
     message: {
       status: 'error',

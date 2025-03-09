@@ -7,12 +7,15 @@ import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
 import { PrismaClient } from '@prisma/client';
+import passport from './config/passport';
 
 // Import configurations
 import { config } from './config/env';
 import { logger } from './config/logger';
 import { errorHandler } from './middlewares/error.middleware';
 import { rateLimiter } from './middlewares/rateLimiter.middleware';
+import { disconnectDB } from './config/database';
+import { disconnectRedis } from './config/redis';
 
 // Import routes
 // import authRoutes from './api/auth/auth.routes';
@@ -25,7 +28,6 @@ import { rateLimiter } from './middlewares/rateLimiter.middleware';
 // import notificationRoutes from './api/notifications/notifications.routes';
 
 // Initialize Prisma Client
-export const prisma = new PrismaClient();
 
 // Initialize Express application
 const app: Application = express();
@@ -39,6 +41,7 @@ const swaggerOptions = {
       version: '1.0.0',
       description: 'API for a media recommendation platform',
     },
+
     servers: [
       {
         url: `http://localhost:${config.PORT}`,
@@ -63,6 +66,9 @@ app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
+
+// Passport middleware
+app.use(passport.initialize());
 
 // Rate limiting
 if (config.NODE_ENV === 'production') {
@@ -113,8 +119,10 @@ app.use(errorHandler);
 
 // Handle graceful shutdown
 process.on('exit', async () => {
-  await prisma.$disconnect();
+  await disconnectDB();
   logger.info('Disconnected from database');
+  await disconnectRedis();
+  logger.info('Disconnected from redis');
 });
 
 export default app;

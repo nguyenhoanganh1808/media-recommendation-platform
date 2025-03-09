@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
 import passport from 'passport';
-import { AppError, asyncHandler } from './error.middleware';
+import { AppError } from './error.middleware';
 import { prisma } from '../config/database';
 import { Role } from '@prisma/client';
+import asyncHandler from '../utils/asyncHandler';
 
 // Define a custom type to extend Express Request
 declare global {
@@ -140,7 +141,7 @@ export const checkOwnership = (
 
 // Middleware to update last login timestamp
 export const updateLastLogin = asyncHandler(
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (req: Request, _res: Response, next: NextFunction) => {
     if (req.user) {
       await prisma.user.update({
         where: { id: req.user.id },

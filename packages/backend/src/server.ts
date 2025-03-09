@@ -1,10 +1,14 @@
 import app from './app';
 import { logger } from './config/logger';
 import { config } from './config/env';
+import { connectDB } from './config/database';
+import { connectRedis } from './config/redis';
 
 const PORT = config.PORT || 3000;
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, async () => {
+  await connectDB();
+  await connectRedis();
   logger.info(`🚀 Server started on port ${PORT} in ${config.NODE_ENV} mode`);
   logger.info(
     `🔗 API Documentation available at http://localhost:${PORT}/api-docs`

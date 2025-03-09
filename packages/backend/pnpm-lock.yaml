@@ -11,6 +11,9 @@ importers:
       '@prisma/client':
         specifier: ^6.4.1
         version: 6.4.1(prisma@6.4.1(typescript@5.8.2))(typescript@5.8.2)
+      bcryptjs:
+        specifier: ^3.0.2
+        version: 3.0.2
       compression:
         specifier: ^1.8.0
         version: 1.8.0
@@ -35,6 +38,9 @@ importers:
       helmet:
         specifier: ^8.0.0
         version: 8.0.0
+      jsonwebtoken:
+        specifier: ^9.0.2
+        version: 9.0.2
       morgan:
         specifier: ^1.10.0
         version: 1.10.0
@@ -81,6 +87,9 @@ importers:
       '@types/express':
         specifier: ^5.0.0
         version: 5.0.0
+      '@types/jsonwebtoken':
+        specifier: ^9.0.9
+        version: 9.0.9
       '@types/morgan':
         specifier: ^1.9.9
         version: 1.9.9
@@ -492,6 +501,10 @@ packages:
   basic-auth@2.0.1:
     resolution: {integrity: sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg==}
     engines: {node: '>= 0.8'}
+
+  bcryptjs@3.0.2:
+    resolution: {integrity: sha512-k38b3XOZKv60C4E2hVsXTolJWfkGRMbILBIe2IBITXciy5bOsTKot5kDrf3ZfufQtQOUN5mXceUEpU1rTl9Uog==}
+    hasBin: true
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -1608,6 +1621,8 @@ snapshots:
   basic-auth@2.0.1:
     dependencies:
       safe-buffer: 5.1.2
+
+  bcryptjs@3.0.2: {}
 
   binary-extensions@2.3.0: {}
 

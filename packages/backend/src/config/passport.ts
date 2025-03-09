@@ -3,6 +3,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { prisma } from './database';
 import { config } from './env';
+import { comparePasswords } from '../utils/password';
 // import { comparePassword } from '../utils/password';
 
 // Configure local strategy for username/password authentication
@@ -30,8 +31,8 @@ passport.use(
         }
 
         // Validate password
-        // const isPasswordValid = await comparePassword(password, user.password);
-        const isPasswordValid = true;
+        const isPasswordValid = await comparePasswords(password, user.password);
+
         if (!isPasswordValid) {
           return done(null, false, { message: 'Incorrect email or password' });
         }
@@ -57,7 +58,7 @@ passport.use(
       try {
         // Find the user by ID from JWT payload
         const user = await prisma.user.findUnique({
-          where: { id: jwtPayload.id },
+          where: { id: jwtPayload.userId },
         });
 
         // Check if user exists and is active
@@ -88,7 +89,7 @@ passport.use(
         // Validate the refresh token exists in the database
         const refreshToken = await prisma.refreshToken.findFirst({
           where: {
-            userId: jwtPayload.id,
+            userId: jwtPayload.userId,
             token: jwtPayload.token,
             expiresAt: {
               gt: new Date(),
@@ -102,7 +103,7 @@ passport.use(
 
         // Find the user
         const user = await prisma.user.findUnique({
-          where: { id: jwtPayload.id },
+          where: { id: jwtPayload.userId },
         });
 
         // Check if user exists and is active

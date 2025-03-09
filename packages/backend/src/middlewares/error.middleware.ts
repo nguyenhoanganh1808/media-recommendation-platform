@@ -67,7 +67,7 @@ export const errorHandler = (
   err: any,
   req: Request,
   res: Response,
-  _next: NextFunction
+  next: NextFunction
 ) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -101,33 +101,29 @@ export const errorHandler = (
 
   // Development error response - with stack trace
   if (config.NODE_ENV === 'development') {
-    return res.status(error.statusCode).json({
+    res.status(error.statusCode).json({
       status: error.status,
       message: error.message,
       stack: error.stack,
       error: error,
     });
+    return;
   }
 
   // Production error response - without sensitive error details
   // Don't leak operational details for security reasons
   if (error.isOperational) {
-    return res.status(error.statusCode).json({
+    res.status(error.statusCode).json({
       status: error.status,
       message: error.message,
     });
+    return;
   }
 
   // Generic error message for non-operational errors in production
-  return res.status(500).json({
+  res.status(500).json({
     status: 'error',
     message: 'Something went wrong',
   });
-};
-
-// Async handler to catch async errors
-export const asyncHandler = (fn: Function) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    fn(req, res, next).catch(next);
-  };
+  return;
 };
