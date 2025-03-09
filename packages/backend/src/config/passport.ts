@@ -6,6 +6,12 @@ import { config } from './env';
 import { comparePasswords } from '../utils/password';
 // import { comparePassword } from '../utils/password';
 
+interface JwtPayload {
+  userId: string;
+  email: string;
+  role: string;
+}
+
 // Configure local strategy for username/password authentication
 passport.use(
   new LocalStrategy(
@@ -54,7 +60,7 @@ passport.use(
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.JWT_SECRET!,
     },
-    async (jwtPayload, done) => {
+    async (jwtPayload: JwtPayload, done) => {
       try {
         // Find the user by ID from JWT payload
         const user = await prisma.user.findUnique({
@@ -83,14 +89,15 @@ passport.use(
     {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       secretOrKey: config.JWT_REFRESH_SECRET!,
+      passReqToCallback: true,
     },
-    async (jwtPayload, done) => {
+    async (req, jwtPayload: JwtPayload, done) => {
       try {
         // Validate the refresh token exists in the database
         const refreshToken = await prisma.refreshToken.findFirst({
           where: {
             userId: jwtPayload.userId,
-            token: jwtPayload.token,
+            token: req.body.refreshToken,
             expiresAt: {
               gt: new Date(),
             },

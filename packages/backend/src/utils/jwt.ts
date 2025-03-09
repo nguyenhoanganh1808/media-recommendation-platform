@@ -36,8 +36,13 @@ export const generateAccessToken = (user: User): string => {
  * @returns The generated refresh token
  */
 export const generateRefreshToken = (user: User): string => {
+  const payload: TokenPayload = {
+    userId: user.id,
+    role: user.role,
+    email: user.email,
+  };
   // Generate a random token
-  return jwt.sign(user, config.JWT_REFRESH_SECRET!, {
+  return jwt.sign(payload, config.JWT_REFRESH_SECRET!, {
     expiresIn: '7d',
   });
 };

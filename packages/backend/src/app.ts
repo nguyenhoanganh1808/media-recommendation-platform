@@ -1,10 +1,4 @@
-import express, {
-  Application,
-  Request,
-  Response,
-  NextFunction,
-  Express,
-} from 'express';
+import express, { Request, Response, Express } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -12,7 +6,6 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import swaggerUi from 'swagger-ui-express';
 import swaggerJsdoc from 'swagger-jsdoc';
-import { PrismaClient } from '@prisma/client';
 import passport from './config/passport';
 
 // Import configurations
@@ -24,7 +17,7 @@ import { disconnectDB } from './config/database';
 import { disconnectRedis } from './config/redis';
 
 // Import routes
-// import authRoutes from './api/auth/auth.routes';
+import authRoutes from './api/auth/auth.routes';
 // import userRoutes from './api/users/users.routes';
 // import mediaRoutes from './api/media/media.routes';
 // import ratingRoutes from './api/ratings/ratings.routes';
@@ -103,7 +96,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // API routes
-// app.use('/api/v1/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 // app.use('/api/v1/users', userRoutes);
 // app.use('/api/v1/media', mediaRoutes);
 // app.use('/api/v1/ratings', ratingRoutes);
