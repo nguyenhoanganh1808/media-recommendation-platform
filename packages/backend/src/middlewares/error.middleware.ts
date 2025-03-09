@@ -102,9 +102,9 @@ export const errorHandler = (
   // Development error response - with stack trace
   if (config.NODE_ENV === 'development') {
     res.status(error.statusCode).json({
-      status: error.status,
-      message: error.message,
-      stack: error.stack,
+      // status: error.status,
+      // message: error.message,
+      // stack: error.stack,
       error: error,
     });
     return;
