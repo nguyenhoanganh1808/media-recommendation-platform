@@ -5,12 +5,14 @@ export const createUserValidation = [
     .isEmail()
     .withMessage('Please provide a valid email')
     .normalizeEmail(),
+
   body('username')
     .isString()
     .isLength({ min: 3, max: 30 })
     .withMessage('Username must be between 3 and 30 characters')
     .matches(/^[a-zA-Z0-9_]+$/)
     .withMessage('Username can only contain letters, numbers and underscores'),
+
   body('password')
     .isString()
     .isLength({ min: 8 })
@@ -21,14 +23,17 @@ export const createUserValidation = [
     .withMessage('Password must contain at least one lowercase letter')
     .matches(/[0-9]/)
     .withMessage('Password must contain at least one number'),
+
   body('firstName')
     .optional()
     .isString()
     .withMessage('First name must be a string'),
+
   body('lastName')
     .optional()
     .isString()
     .withMessage('Last name must be a string'),
+
   body('bio')
     .optional()
     .isString()
