@@ -28,23 +28,6 @@ afterAll(async () => {
   disconnectDB();
 });
 
-describe('Auth API Integration Tests', () => {
-  describe('POST /api/auth/register', () => {
-    it('should register a new user', async () => {
-      const res = await request(server).post('/api/auth/register').send({
-        email: testUser.email,
-        username: testUser.username,
-        password: testUser.password,
-        firstName: 'Test',
-        lastName: 'User',
-      });
-
-      expect(res.status).toBe(201);
-      expect(res.body.success).toBe(true);
-    });
-  });
-});
-
 describe('Auth Service Unit Tests', () => {
   test('should hash password correctly', async () => {
     const hashed = await hashPassword(testUser.password);

@@ -67,8 +67,6 @@ describe('Auth API', () => {
         lastName: 'User',
       });
 
-      console.log('res: ', res);
-
       expect(res.status).toBe(409);
       expect(res.body.message).toBeDefined();
       expect(res.body.success).toBeFalsy();
