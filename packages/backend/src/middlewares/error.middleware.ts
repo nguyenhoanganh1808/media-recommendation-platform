@@ -68,7 +68,7 @@ export const errorHandler = (
   err: any,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   err.statusCode = err.statusCode || 500;
   err.status = err.status || 'error';
@@ -109,10 +109,7 @@ export const errorHandler = (
   // Production error response - without sensitive error details
   // Don't leak operational details for security reasons
   if (error.isOperational) {
-    res.status(error.statusCode).json({
-      status: error.status,
-      message: error.message,
-    });
+    sendError(res, error.message, error.statusCode, error.code);
     return;
   }
 
