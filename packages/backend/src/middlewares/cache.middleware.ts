@@ -49,7 +49,8 @@ export const cacheMiddleware = (options: CacheOptions = {}) => {
         // Parse cached data
         const data = JSON.parse(cachedData);
         logger.debug(`Cache hit for: ${cacheKey}`);
-        return res.status(200).json(data);
+        res.status(200).json(data);
+        return;
       }
 
       // If not in cache, store the original json function
