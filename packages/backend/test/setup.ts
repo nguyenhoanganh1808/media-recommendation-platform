@@ -5,8 +5,3 @@ beforeAll(async () => {
   // Set up any global configurations (e.g., database connection)
   await connectDB();
 });
-
-afterAll(async () => {
-  // Clean up (e.g., close database connection)
-  await disconnectDB();
-});

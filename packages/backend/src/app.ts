@@ -47,6 +47,21 @@ const swaggerOptions = {
         description: 'Development server',
       },
     ],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT', // Optional: Specify the token format
+          description: 'Enter your access token in the format: Bearer <token>',
+        },
+      },
+    },
+    security: [
+      {
+        bearerAuth: [], // Apply this security scheme globally (optional)
+      },
+    ],
   },
   apis: ['./src/api/**/*.routes.ts', './src/api/**/*.validation.ts'],
 };

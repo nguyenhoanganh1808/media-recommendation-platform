@@ -5,6 +5,7 @@ import {
 } from '@prisma/client/runtime/library';
 import { logger } from '../config/logger';
 import { config } from '../config/env';
+import { sendError } from '../utils/responseFormatter';
 
 // Custom error class
 export class AppError extends Error {
@@ -101,12 +102,7 @@ export const errorHandler = (
 
   // Development error response - with stack trace
   if (config.NODE_ENV === 'development') {
-    res.status(error.statusCode).json({
-      // status: error.status,
-      // message: error.message,
-      // stack: error.stack,
-      error: error,
-    });
+    sendError(res, error.message, error.statusCode, error.code, error.stack);
     return;
   }
 

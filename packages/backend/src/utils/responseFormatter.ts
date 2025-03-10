@@ -9,6 +9,7 @@ export interface ApiResponse<T> {
   data?: T;
   error?: {
     code: string;
+    // statusCode: number;
     details?: any;
   };
   meta?: {
