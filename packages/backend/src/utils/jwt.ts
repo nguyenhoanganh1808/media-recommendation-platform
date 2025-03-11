@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { User } from '@prisma/client';
 import { config } from '../config/env';
+import { randomUUID } from 'crypto';
 
 /**
  * Payload type for JWT tokens
@@ -11,6 +12,9 @@ interface TokenPayload {
   email: string;
 }
 
+interface RefreshTokenPayload extends TokenPayload {
+  jti: string;
+}
 /**
  * Generates an access token for a user
  *
@@ -36,10 +40,11 @@ export const generateAccessToken = (user: User): string => {
  * @returns The generated refresh token
  */
 export const generateRefreshToken = (user: User): string => {
-  const payload: TokenPayload = {
+  const payload: RefreshTokenPayload = {
     userId: user.id,
     role: user.role,
     email: user.email,
+    jti: randomUUID(),
   };
   // Generate a random token
   return jwt.sign(payload, config.JWT_REFRESH_SECRET!, {

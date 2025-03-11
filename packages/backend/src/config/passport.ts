@@ -53,6 +53,13 @@ passport.use(
   )
 );
 
+const cookieExtractor = (req: any) => {
+  if (req && req.body && req.body.refreshToken) {
+    return req.body.refreshToken;
+  }
+  return null;
+};
+
 // Configure JWT strategy for token-based authentication
 passport.use(
   new JwtStrategy(
@@ -87,7 +94,7 @@ passport.use(
   'jwt-refresh',
   new JwtStrategy(
     {
-      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+      jwtFromRequest: cookieExtractor,
       secretOrKey: config.JWT_REFRESH_SECRET!,
       passReqToCallback: true,
     },

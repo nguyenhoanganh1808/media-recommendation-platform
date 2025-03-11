@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { Express } from 'express';
-import { disconnectDB, prisma } from '../../src/config/database';
+import { prisma } from '../../src/config/database';
 import { hashPassword } from '../../src/utils/password';
 import app from '../../src/app';
 
@@ -16,7 +16,12 @@ let refreshToken = '';
 
 beforeAll(async () => {
   server = app;
-  // Create test user with hashed password
+  await prisma.refreshToken.deleteMany({});
+
+  await prisma.follow.deleteMany({});
+
+  await prisma.user.deleteMany({});
+
   testUser.hashedPassword = await hashPassword(testUser.password);
 });
 
@@ -77,6 +82,8 @@ describe('Auth API', () => {
         email: testUser.email,
         password: testUser.password,
       });
+
+      console.log('Response: ', res.status, res.body);
 
       expect(res.status).toBe(200);
       expect(res.body.success).toBe(true);
