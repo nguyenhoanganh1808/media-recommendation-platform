@@ -11,6 +11,7 @@ import { Role } from '@prisma/client';
 const router = Router();
 
 // Public routes
+
 router.get(
   '/',
   cacheMiddleware({ ttl: 300 }), // Cache for 5 minutes

@@ -20,14 +20,17 @@ import { disconnectRedis } from './config/redis';
 import authRoutes from './api/auth/auth.routes';
 import userRoutes from './api/users/users.routes';
 import password from './utils/password';
-// import mediaRoutes from './api/media/media.routes';
+import mediaRoutes from './api/media/media.routes';
 // import ratingRoutes from './api/ratings/ratings.routes';
 // import reviewRoutes from './api/media/media.routes';
 // import listRoutes from './api/lists/lists.routes';
 // import recommendationRoutes from './api/recommendations/recommendations.routes';
 // import notificationRoutes from './api/notifications/notifications.routes';
 
-// Initialize Prisma Client
+// Import docs
+import { authDocs } from './docs/auth.swagger';
+import { userDocs } from './docs/user.swagger';
+import { mediaDocs } from './docs/media.swagger';
 
 // Initialize Express application
 const app: Express = express();
@@ -48,6 +51,11 @@ const swaggerOptions = {
         description: 'Development server',
       },
     ],
+    paths: {
+      ...authDocs.paths,
+      ...userDocs.paths,
+      ...mediaDocs.paths,
+    },
     components: {
       securitySchemes: {
         BearerAuth: {
@@ -58,6 +66,7 @@ const swaggerOptions = {
         },
       },
       schemas: {
+        ...mediaDocs.components.schemas,
         User: {
           type: 'object',
           required: ['username', 'email', 'password'],
@@ -145,7 +154,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
-// app.use('/api/v1/media', mediaRoutes);
+app.use('/api/media', mediaRoutes);
 // app.use('/api/v1/ratings', ratingRoutes);
 // app.use('/api/v1/reviews', reviewRoutes);
 // app.use('/api/v1/lists', listRoutes);
