@@ -13,14 +13,16 @@ const router = Router();
 router.post(
   '/',
   validate(userValidation.createUserValidation),
+  restrictTo(Role.ADMIN),
   userController.createUser
 );
 
 // Protected routes
 router.get(
   '/:id',
+  authenticate,
   validate(userValidation.userIdValidation),
-  userCacheMiddleware({ ttl: 300 }), // Cache for 5 minutes
+  userCacheMiddleware({ ttl: 300 }),
   userController.getUser
 );
 
