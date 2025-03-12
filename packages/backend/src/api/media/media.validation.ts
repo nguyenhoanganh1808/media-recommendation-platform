@@ -117,4 +117,6 @@ export const updateMediaValidation = [
     .withMessage('Genres must be an array of IDs'),
 ];
 
-// Update and delete validations...
+export const deleteMediaValidation = [
+  param('id').isUUID().withMessage('Invalid media ID'),
+];
