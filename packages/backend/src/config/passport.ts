@@ -62,6 +62,7 @@ const cookieExtractor = (req: any) => {
 
 // Configure JWT strategy for token-based authentication
 passport.use(
+  'jwt',
   new JwtStrategy(
     {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

@@ -19,6 +19,7 @@ import { disconnectRedis } from './config/redis';
 // Import routes
 import authRoutes from './api/auth/auth.routes';
 import userRoutes from './api/users/users.routes';
+import password from './utils/password';
 // import mediaRoutes from './api/media/media.routes';
 // import ratingRoutes from './api/ratings/ratings.routes';
 // import reviewRoutes from './api/media/media.routes';
@@ -49,11 +50,42 @@ const swaggerOptions = {
     ],
     components: {
       securitySchemes: {
-        bearerAuth: {
+        BearerAuth: {
           type: 'http',
           scheme: 'bearer',
           bearerFormat: 'JWT', // Optional: Specify the token format
           description: 'Enter your access token in the format: Bearer <token>',
+        },
+      },
+      schemas: {
+        User: {
+          type: 'object',
+          required: ['username', 'email', 'password'],
+          properties: {
+            id: { type: 'string', example: '123' },
+            username: { type: 'string', example: 'john_doe' },
+            email: { type: 'string', example: 'john@example.com' },
+            password: { type: 'string', example: 'password123' },
+            firstName: { type: 'string', example: 'John' },
+            lastName: { type: 'string', example: 'Doe' },
+            bio: { type: 'string', example: 'Hello, my name is John Doe.' },
+            role: {
+              type: 'string',
+              enum: ['USER', 'ADMIN', 'MODERATOR'],
+              example: 'USER',
+            },
+          },
+        },
+        UpdateUser: {
+          type: 'object',
+          properties: {
+            username: { type: 'string', example: 'new_username' },
+            email: { type: 'string', example: 'new_email@example.com' },
+
+            firstName: { type: 'string', example: 'John' },
+            lastName: { type: 'string', example: 'Doe' },
+            bio: { type: 'string', example: 'Hello, my name is John Doe.' },
+          },
         },
       },
     },
@@ -101,7 +133,7 @@ if (config.NODE_ENV === 'development') {
 }
 
 // Health check endpoint
-app.get('/health', (req: Request, res: Response) => {
+app.get('/health', (_req: Request, res: Response) => {
   res
     .status(200)
     .json({ status: 'success', message: 'API is running', data: null });

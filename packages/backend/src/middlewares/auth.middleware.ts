@@ -96,7 +96,7 @@ export const checkOwnership = (
   paramIdField: string = 'id'
 ) => {
   return asyncHandler(
-    async (req: Request, res: Response, next: NextFunction) => {
+    async (req: Request, _res: Response, next: NextFunction) => {
       if (!req.user) {
         return next(
           new AppError('Authentication required. Please log in.', 401)

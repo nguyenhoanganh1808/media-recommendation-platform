@@ -107,7 +107,7 @@ router.post(
  *     tags:
  *       - Auth
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: Logout successful
@@ -130,7 +130,7 @@ router.post(
  *     tags:
  *       - Auth
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
@@ -164,7 +164,7 @@ router.post(
  *     tags:
  *       - Auth
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     responses:
  *       200:
  *         description: User profile retrieved successfully
@@ -187,7 +187,7 @@ router.get(
  *     tags:
  *       - Auth
  *     security:
- *       - bearerAuth: []
+ *       - BearerAuth: []
  *     requestBody:
  *       required: true
  *       content:
