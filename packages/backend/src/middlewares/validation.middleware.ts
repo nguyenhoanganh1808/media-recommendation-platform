@@ -17,8 +17,12 @@ export const validate = (validations: ValidationChain[]) => {
     // Format the validation errors
     const extractedErrors = errors.array().reduce(
       (acc, err) => {
+        // Check if err has a path property (express-validator v6+)
         if (err.type === 'field') {
           acc[err.path] = err.msg;
+        } else if ('param' in err) {
+          // Fallback for older express-validator versions
+          acc[err.param as any] = err.msg;
         }
         return acc;
       },
