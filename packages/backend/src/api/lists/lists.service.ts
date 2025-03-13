@@ -2,6 +2,8 @@ import { prisma } from '../../config/database';
 import { AppError } from '../../middlewares/error.middleware';
 import { MediaList, MediaListItem } from '@prisma/client';
 import { clearCacheByPattern } from '../../middlewares/cache.middleware';
+import { createPagination } from '../../utils/responseFormatter';
+import asyncHandler from '../../utils/asyncHandler';
 
 /**
  * Service for handling list operations
@@ -291,8 +293,184 @@ export const shareList = async (
   });
 };
 
+export const getListByUser = async (
+  userId: string,
+  page: number,
+  skip: number,
+  limit: number
+): Promise<any> => {
+  const [lists, total] = await Promise.all([
+    prisma.mediaList.findMany({
+      where: { userId },
+      skip,
+      take: limit,
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        _count: {
+          select: { items: true },
+        },
+      },
+    }),
+    prisma.mediaList.count({
+      where: { userId },
+    }),
+  ]);
+
+  // Format the response
+  const formattedLists = lists.map((list) => ({
+    id: list.id,
+    name: list.name,
+    description: list.description,
+    isPublic: list.isPublic,
+    itemCount: list._count.items,
+    createdAt: list.createdAt,
+    updatedAt: list.updatedAt,
+  }));
+
+  const pagination = createPagination(page, limit, total);
+
+  return [formattedLists, pagination];
+};
+
+export const getListById = async (
+  id: string,
+  userId: string
+): Promise<MediaList> => {
+  const list = await prisma.mediaList.findUnique({
+    where: { id },
+    include: {
+      items: {
+        include: {
+          media: {
+            include: {
+              genres: {
+                include: {
+                  genre: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { order: 'asc' },
+      },
+      _count: {
+        select: { items: true },
+      },
+    },
+  });
+
+  if (!list) {
+    throw new AppError('List not found', 404);
+  }
+
+  // Check if user has permission to view this list
+  if (!list.isPublic && list.userId !== userId) {
+    throw new AppError('You do not have permission to view this list', 403);
+  }
+
+  // Format the response
+  const formattedItems = list.items.map((item) => ({
+    id: item.id,
+    mediaId: item.mediaId,
+    notes: item.notes,
+    order: item.order,
+    media: {
+      id: item.media.id,
+      title: item.media.title,
+      mediaType: item.media.mediaType,
+      coverImage: item.media.coverImage,
+      releaseDate: item.media.releaseDate,
+      averageRating: item.media.averageRating,
+      genres: item.media.genres.map((g) => g.genre.name),
+    },
+  }));
+
+  const formattedList = {
+    id: list.id,
+    name: list.name,
+    description: list.description,
+    isPublic: list.isPublic,
+    userId: list.userId,
+    itemCount: list._count.items,
+    items: formattedItems,
+    createdAt: list.createdAt,
+    updatedAt: list.updatedAt,
+  };
+
+  return formattedList;
+};
+
+export const updateListItem = async (itemId: string, notes: string) => {
+  return await prisma.mediaListItem.update({
+    where: { id: itemId },
+    data: {
+      notes,
+    },
+    include: {
+      media: {
+        select: {
+          title: true,
+        },
+      },
+    },
+  });
+};
+
+export const getUserPublicLists = async (
+  userId: string,
+  page: number,
+  skip: number,
+  limit: number
+) => {
+  const [lists, total] = await Promise.all([
+    prisma.mediaList.findMany({
+      where: {
+        userId,
+        isPublic: true,
+      },
+      skip,
+      take: limit,
+      orderBy: { updatedAt: 'desc' },
+      include: {
+        _count: {
+          select: { items: true },
+        },
+        user: {
+          select: {
+            username: true,
+            avatar: true,
+          },
+        },
+      },
+    }),
+    prisma.mediaList.count({
+      where: {
+        userId,
+        isPublic: true,
+      },
+    }),
+  ]);
+
+  const formattedLists = lists.map((list) => ({
+    id: list.id,
+    name: list.name,
+    description: list.description,
+    itemCount: list._count.items,
+    user: list.user,
+    createdAt: list.createdAt,
+    updatedAt: list.updatedAt,
+  }));
+
+  const pagination = createPagination(page, limit, total);
+
+  return [formattedLists, pagination];
+};
+
 export default {
+  getListByUser,
+  getUserPublicLists,
   shareList,
+  updateListItem,
   addItemToList,
   updateList,
   createList,
