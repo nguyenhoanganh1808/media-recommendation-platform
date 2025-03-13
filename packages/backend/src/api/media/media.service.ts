@@ -1,6 +1,7 @@
 // media.service.ts
 import { prisma } from '../../config/database';
 import { MediaType } from '@prisma/client';
+import { createPagination } from '../../utils/responseFormatter';
 
 interface MediaQueryParams {
   page: number;
@@ -52,15 +53,10 @@ export const getAllMedia = async ({
     skip: (page - 1) * limit,
     take: limit,
   });
-
+  const pagination = createPagination(page, limit, total);
   return {
     media,
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.ceil(total / limit),
-    },
+    pagination,
   };
 };
 

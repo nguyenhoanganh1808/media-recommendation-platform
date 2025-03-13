@@ -15,12 +15,15 @@ export const validate = (validations: ValidationChain[]) => {
     }
 
     // Format the validation errors
-    const extractedErrors: { [key: string]: string } = {};
-    errors.array().forEach((err) => {
-      if (err.type === 'field') {
-        extractedErrors[err.path] = err.msg;
-      }
-    });
+    const extractedErrors = errors.array().reduce(
+      (acc, err) => {
+        if (err.type === 'field') {
+          acc[err.path] = err.msg;
+        }
+        return acc;
+      },
+      {} as Record<string, string>
+    );
 
     // Return validation error response
     return next(

@@ -26,9 +26,7 @@ export const getAllMedia = asyncHandler(async (req: Request, res: Response) => {
     sortOrder,
   });
 
-  sendSuccess(res, media, 'Media fetched successfully', 200, {
-    pagination,
-  });
+  sendSuccess(res, media, 'Media fetched successfully', 200, pagination);
 });
 
 // Get media by ID

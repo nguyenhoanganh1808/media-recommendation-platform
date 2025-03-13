@@ -1,317 +1,521 @@
-// tests/integration/auth.routes.test.ts
+// tests/integration/media.routes.test.ts
 import request from 'supertest';
 import app from '../../src/app';
 import { prisma } from '../../src/config/database';
-import { hashPassword } from '../../src/utils/password';
-import { Role } from '@prisma/client';
+import { MediaType, MediaStatus, Role, Genre } from '@prisma/client';
+import { generateAccessToken } from '../../src/utils/jwt';
+import { logger } from '../../src/config/logger';
 
-// Mock Redis to avoid rate limit issues in tests
+// Mock Redis client
 jest.mock('../../src/config/redis', () => ({
   redisClient: {
     isReady: false,
-    sendCommand: jest.fn(),
   },
+  getCache: jest.fn(),
+  setCache: jest.fn(),
 }));
 
-jest.mock('rate-limit-redis', () => ({
-  RedisStore: jest.fn().mockImplementation(() => ({})),
-}));
+describe('Media API Routes', () => {
+  // Test data
+  let adminUser: any;
+  let moderatorUser: any;
+  let regularUser: any;
+  let adminToken: string;
+  let moderatorToken: string;
+  let userToken: string;
+  let testMedia: any;
+  let testGenre: Genre;
 
-describe('Authentication Routes', () => {
-  // Test user data
-  const testUsers = {
-    admin: {
-      email: 'admin@test.com',
-      password: 'Admin@123',
-      username: 'admin_user',
-      role: Role.ADMIN,
-    },
-    moderator: {
-      email: 'mod@test.com',
-      password: 'Moderator@123',
-      username: 'mod_user',
-      role: Role.MODERATOR,
-    },
-    regular: {
-      email: 'user@test.com',
-      password: 'User@123',
-      username: 'regular_user',
-      role: Role.USER,
-    },
-  };
-
-  // Before all tests, create the test users in the database
+  // Setup before tests
   beforeAll(async () => {
-    // Clear existing users
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          in: [
-            testUsers.admin.email,
-            testUsers.moderator.email,
-            testUsers.regular.email,
+    // Create test users with different roles
+
+    adminUser = await prisma.user.create({
+      data: {
+        email: 'admin@test.com',
+        username: 'admin_test',
+        password: 'hashed_password',
+        role: Role.ADMIN,
+      },
+    });
+
+    moderatorUser = await prisma.user.create({
+      data: {
+        email: 'moderator@test.com',
+        username: 'moderator_test',
+        password: 'hashed_password',
+        role: Role.MODERATOR,
+      },
+    });
+
+    regularUser = await prisma.user.create({
+      data: {
+        email: 'user@test.com',
+        username: 'user_test',
+        password: 'hashed_password',
+        role: Role.USER,
+      },
+    });
+
+    // Create JWT tokens
+    adminToken = generateAccessToken(adminUser);
+
+    moderatorToken = generateAccessToken(moderatorUser);
+
+    userToken = generateAccessToken(regularUser);
+
+    // Create a test genre
+    testGenre = await prisma.genre.create({
+      data: {
+        name: 'Test Genre',
+        description: 'A genre for testing',
+      },
+    });
+
+    // Create test media
+    testMedia = await prisma.media.create({
+      data: {
+        title: 'Test Media',
+        description: 'A test media item',
+        mediaType: MediaType.MOVIE,
+        status: MediaStatus.RELEASED,
+        director: 'Test Director',
+        duration: 120,
+        genres: {
+          create: [
+            {
+              genre: {
+                connect: { id: testGenre.id },
+              },
+            },
           ],
         },
       },
     });
-
-    // Create test users with hashed passwords
-    for (const user of Object.values(testUsers)) {
-      const hashedPassword = await hashPassword(user.password);
-      await prisma.user.create({
-        data: {
-          email: user.email,
-          password: hashedPassword,
-          username: user.username,
-          role: user.role,
-        },
-      });
-    }
   });
 
-  // After all tests, clean up
+  // Cleanup after tests
   afterAll(async () => {
-    // Remove test users
-    await prisma.user.deleteMany({
-      where: {
-        email: {
-          in: [
-            testUsers.admin.email,
-            testUsers.moderator.email,
-            testUsers.regular.email,
-          ],
-        },
-      },
-    });
-
-    await prisma.$disconnect();
+    // Clean up all test data
+    await prisma.mediaRating.deleteMany({});
+    await prisma.mediaReview.deleteMany({});
+    await prisma.genreOnMedia.deleteMany({});
+    await prisma.media.deleteMany({});
+    await prisma.genre.deleteMany({});
+    await prisma.user.deleteMany({});
   });
 
-  describe('POST /api/auth/login', () => {
-    it('should authenticate a valid user and return JWT token', async () => {
+  describe('GET /api/media', () => {
+    it('should return a list of media with pagination', async () => {
+      const response = await request(app).get('/api/media').expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data).toBeInstanceOf(Array);
+      expect(response.body.meta.pagination).toHaveProperty('page');
+      expect(response.body.meta.pagination).toHaveProperty('limit');
+      expect(response.body.meta.pagination).toHaveProperty('total');
+      expect(response.body.meta.pagination).toHaveProperty('totalPages');
+    });
+
+    it('should filter media by type', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: testUsers.regular.email,
-          password: testUsers.regular.password,
-        })
+        .get('/api/media?type=MOVIE')
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveProperty('token');
-      expect(response.body.data).toHaveProperty('user');
-      expect(response.body.data.user.email).toBe(testUsers.regular.email);
-      expect(response.body.data.user.role).toBe(testUsers.regular.role);
+      expect(response.body.data).toBeInstanceOf(Array);
+      expect(
+        response.body.data.every((item: any) => item.mediaType === 'MOVIE')
+      ).toBe(true);
     });
 
-    it('should authenticate admin user with correct role', async () => {
+    it('should filter media by genre', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: testUsers.admin.email,
-          password: testUsers.admin.password,
-        })
+        .get(`/api/media?genre=Test Genre`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.user.role).toBe(testUsers.admin.role);
+      // Note: The actual filtering logic is tested in service tests
     });
 
-    it('should reject login with incorrect password', async () => {
+    it('should search media by title', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: testUsers.regular.email,
-          password: 'wrong_password',
-        })
-        .expect(401);
+        .get('/api/media?search=Test')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(
+        response.body.data.some((item: any) => item.title.includes('Test'))
+      ).toBe(true);
+    });
+
+    it('should sort media by specified field', async () => {
+      const response = await request(app)
+        .get('/api/media?sortBy=title&sortOrder=asc')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      // Note: The actual sorting logic is tested in service tests
+    });
+
+    it('should reject invalid query parameters', async () => {
+      const response = await request(app)
+        .get('/api/media?invalidParam=value')
+        .expect(400);
 
       expect(response.body.success).toBe(false);
-      expect(response.body.error).toBeDefined();
     });
 
-    it('should reject login for non-existent user', async () => {
+    it('should limit results based on limit parameter', async () => {
+      const response = await request(app).get('/api/media?limit=1').expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.length).toBeLessThanOrEqual(1);
+    });
+  });
+
+  describe('GET /api/media/:id', () => {
+    it('should return a specific media by ID', async () => {
       const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          email: 'nonexistent@test.com',
-          password: 'password123',
-        })
+        .get(`/api/media/${testMedia.id}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.id).toBe(testMedia.id);
+      expect(response.body.data.title).toBe(testMedia.title);
+    });
+
+    it('should include related data like genres and reviews', async () => {
+      const response = await request(app)
+        .get(`/api/media/${testMedia.id}`)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.genres).toBeInstanceOf(Array);
+      expect(response.body.data.reviews).toBeInstanceOf(Array);
+    });
+
+    it('should return 404 for non-existent media ID', async () => {
+      const response = await request(app)
+        .get('/api/media/00000000-0000-0000-0000-000000000000')
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+      expect(response.body.message).toContain('not found');
+    });
+
+    it('should return 400 for invalid UUID format', async () => {
+      const response = await request(app)
+        .get('/api/media/invalid-uuid')
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+  });
+
+  describe('POST /api/media', () => {
+    const newMediaMovie = {
+      title: 'New Test Movie',
+      description: 'A new test movie',
+      mediaType: 'MOVIE',
+      status: 'RELEASED',
+      director: 'New Director',
+      duration: 150,
+      // genres: [testGenre.id],
+    };
+
+    const newMediaGame = {
+      title: 'New Test Game',
+      description: 'A new test game',
+      mediaType: 'GAME',
+      status: 'RELEASED',
+      developer: 'Test Developer',
+      publisher: 'Test Publisher',
+      // genres: [testGenre.id],
+    };
+
+    it('should allow admins to create new media', async () => {
+      const response = await request(app)
+        .post('/api/media')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(newMediaMovie)
+        .expect(201);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.title).toBe(newMediaMovie.title);
+      expect(response.body.data.mediaType).toBe(newMediaMovie.mediaType);
+
+      // Clean up
+      await prisma.genreOnMedia.deleteMany({
+        where: { mediaId: response.body.data.id },
+      });
+      await prisma.media.delete({
+        where: { id: response.body.data.id },
+      });
+    });
+
+    it('should allow moderators to create new media', async () => {
+      const response = await request(app)
+        .post('/api/media')
+        .set('Authorization', `Bearer ${moderatorToken}`)
+        .send(newMediaGame)
+        .expect(201);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.title).toBe(newMediaGame.title);
+      expect(response.body.data.mediaType).toBe(newMediaGame.mediaType);
+
+      // Clean up
+      await prisma.genreOnMedia.deleteMany({
+        where: { mediaId: response.body.data.id },
+      });
+      await prisma.media.delete({
+        where: { id: response.body.data.id },
+      });
+    });
+
+    it('should not allow regular users to create media', async () => {
+      const response = await request(app)
+        .post('/api/media')
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(newMediaMovie)
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should require authentication to create media', async () => {
+      const response = await request(app)
+        .post('/api/media')
+        .send(newMediaMovie)
         .expect(401);
 
       expect(response.body.success).toBe(false);
     });
 
     it('should validate required fields', async () => {
+      const invalidMedia = {
+        description: 'Missing required fields',
+      };
+
       const response = await request(app)
-        .post('/api/auth/login')
-        .send({
-          // Missing email and password
-        })
+        .post('/api/media')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(invalidMedia)
+        .expect(400);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should validate mediaType-specific fields', async () => {
+      const invalidMovie = {
+        title: 'Invalid Movie',
+        mediaType: 'MOVIE',
+        duration: 'not a number', // Should be a number
+      };
+
+      const response = await request(app)
+        .post('/api/media')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(invalidMovie)
         .expect(400);
 
       expect(response.body.success).toBe(false);
     });
   });
 
-  describe('POST /api/auth/register', () => {
-    const newUser = {
-      email: 'newuser@test.com',
-      password: 'NewUser@123',
-      username: 'new_user',
-      confirmPassword: 'NewUser@123',
-    };
+  describe('PUT /api/media/:id', () => {
+    let mediaToUpdate: any;
 
-    // After each test, clean up the new user
+    beforeEach(async () => {
+      // Create a media item for update tests
+      mediaToUpdate = await prisma.media.create({
+        data: {
+          title: 'Media To Update',
+          description: 'This will be updated',
+          mediaType: MediaType.MOVIE,
+          status: MediaStatus.RELEASED,
+          director: 'Director Name',
+          duration: 120,
+        },
+      });
+    });
+
     afterEach(async () => {
-      await prisma.user.deleteMany({
-        where: { email: newUser.email },
-      });
+      if (mediaToUpdate) {
+        await prisma.media
+          .delete({
+            where: { id: mediaToUpdate.id },
+          })
+          .catch(() => {
+            // Ignore errors if already deleted
+          });
+      }
     });
 
-    it('should register a new user', async () => {
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(newUser)
-        .expect(201);
-
-      expect(response.body.success).toBe(true);
-      expect(response.body.data).toHaveProperty('user');
-      expect(response.body.data.user.email).toBe(newUser.email);
-      expect(response.body.data.user.role).toBe(Role.USER); // Default role
-    });
-
-    it('should reject registration with existing email', async () => {
-      // First, create a user
-      await request(app).post('/api/auth/register').send(newUser).expect(201);
-
-      // Then try to register again with the same email
-      const response = await request(app)
-        .post('/api/auth/register')
-        .send(newUser)
-        .expect(400);
-
-      expect(response.body.success).toBe(false);
-      expect(response.body.error.message).toContain('Email already exists');
-    });
-
-    it('should validate password requirements', async () => {
-      const weakPassword = {
-        ...newUser,
-        password: 'weak',
-        confirmPassword: 'weak',
+    it('should allow admins to update media', async () => {
+      const updateData = {
+        title: 'Updated Title',
+        description: 'Updated description',
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
-        .send(weakPassword)
-        .expect(400);
+        .put(`/api/media/${mediaToUpdate.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(updateData)
+        .expect(200);
 
-      expect(response.body.success).toBe(false);
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.title).toBe(updateData.title);
+      expect(response.body.data.description).toBe(updateData.description);
     });
 
-    it('should validate password confirmation match', async () => {
-      const mismatchPasswords = {
-        ...newUser,
-        confirmPassword: 'DifferentPassword@123',
+    it('should allow moderators to update media', async () => {
+      const updateData = {
+        title: 'Moderator Updated',
+        status: 'UPCOMING',
       };
 
       const response = await request(app)
-        .post('/api/auth/register')
-        .send(mismatchPasswords)
+        .put(`/api/media/${mediaToUpdate.id}`)
+        .set('Authorization', `Bearer ${moderatorToken}`)
+        .send(updateData)
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.title).toBe(updateData.title);
+      expect(response.body.data.status).toBe(updateData.status);
+    });
+
+    it('should not allow regular users to update media', async () => {
+      const updateData = {
+        title: 'User Trying To Update',
+      };
+
+      const response = await request(app)
+        .put(`/api/media/${mediaToUpdate.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send(updateData)
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should validate media type specific fields on update', async () => {
+      const invalidUpdate = {
+        mediaType: 'MANGA',
+        volumeCount: 'not a number', // Should be a number
+      };
+
+      const response = await request(app)
+        .put(`/api/media/${mediaToUpdate.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send(invalidUpdate)
         .expect(400);
 
       expect(response.body.success).toBe(false);
     });
+
+    it('should return 404 for updating non-existent media', async () => {
+      const response = await request(app)
+        .put('/api/media/00000000-0000-0000-0000-000000000000')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ title: 'Update Non-existent' })
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+    });
   });
 
-  describe('GET /api/auth/me', () => {
-    let userToken: string;
+  describe('DELETE /api/media/:id', () => {
+    let mediaToDelete: any;
 
-    // Before tests, login to get token
-    beforeAll(async () => {
-      const response = await request(app).post('/api/auth/login').send({
-        email: testUsers.regular.email,
-        password: testUsers.regular.password,
+    beforeEach(async () => {
+      // Create a media item for delete tests
+      mediaToDelete = await prisma.media.create({
+        data: {
+          title: 'Media To Delete',
+          description: 'This will be deleted',
+          mediaType: MediaType.MOVIE,
+          status: MediaStatus.RELEASED,
+        },
       });
-
-      userToken = response.body.data.token;
     });
 
-    it('should return authenticated user profile', async () => {
+    afterEach(async () => {
+      // Ensure cleanup even if test fails
+      if (mediaToDelete) {
+        await prisma.media
+          .deleteMany({
+            where: { title: 'Media To Delete' },
+          })
+          .catch(() => {
+            // Ignore errors if already deleted
+          });
+      }
+    });
+
+    it('should allow admins to delete media', async () => {
       const response = await request(app)
-        .get('/api/auth/me')
-        .set('Authorization', `Bearer ${userToken}`)
+        .delete(`/api/media/${mediaToDelete.id}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .expect(200);
 
       expect(response.body.success).toBe(true);
-      expect(response.body.data.email).toBe(testUsers.regular.email);
-    });
+      expect(response.body.message).toContain('deleted successfully');
 
-    it('should reject unauthenticated requests', async () => {
-      const response = await request(app).get('/api/auth/me').expect(401);
-
-      expect(response.body.success).toBe(false);
-    });
-
-    it('should reject invalid tokens', async () => {
-      const response = await request(app)
-        .get('/api/auth/me')
-        .set('Authorization', 'Bearer invalid_token')
-        .expect(401);
-
-      expect(response.body.success).toBe(false);
-    });
-  });
-
-  describe('POST /api/auth/logout', () => {
-    let userToken: string;
-
-    // Before tests, login to get token
-    beforeAll(async () => {
-      const response = await request(app).post('/api/auth/login').send({
-        email: testUsers.regular.email,
-        password: testUsers.regular.password,
+      // Verify it's deleted
+      const deleted = await prisma.media.findUnique({
+        where: { id: mediaToDelete.id },
       });
+      expect(deleted).toBeNull();
 
-      userToken = response.body.data.token;
+      // Set to null so afterEach doesn't try to delete again
+      mediaToDelete = null;
     });
 
-    it('should successfully log out an authenticated user', async () => {
+    it('should not allow moderators to delete media', async () => {
       const response = await request(app)
-        .post('/api/auth/logout')
-        .set('Authorization', `Bearer ${userToken}`)
-        .expect(200);
+        .delete(`/api/media/${mediaToDelete.id}`)
+        .set('Authorization', `Bearer ${moderatorToken}`)
+        .expect(403);
 
-      expect(response.body.success).toBe(true);
-      expect(response.body.message).toContain('logged out');
+      expect(response.body.success).toBe(false);
     });
 
-    it('should handle logout for unauthenticated requests', async () => {
-      const response = await request(app).post('/api/auth/logout').expect(401);
+    it('should not allow regular users to delete media', async () => {
+      const response = await request(app)
+        .delete(`/api/media/${mediaToDelete.id}`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .expect(403);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should return 404 for deleting non-existent media', async () => {
+      const response = await request(app)
+        .delete('/api/media/00000000-0000-0000-0000-000000000000')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .expect(404);
 
       expect(response.body.success).toBe(false);
     });
   });
 
-  // Optional: Test password reset flow if implemented
-  describe('POST /api/auth/forgot-password', () => {
-    it('should initiate password reset for existing user', async () => {
+  describe('Rate limiting and caching', () => {
+    it('should apply rate limiting on GET requests', async () => {
+      // This is a simple test to ensure the middleware is applied
+      // A full test would require making many requests in succession
       const response = await request(app)
-        .post('/api/auth/forgot-password')
-        .send({ email: testUsers.regular.email })
-        .expect(200);
+        .get('/api/media')
+        .expect(200)
+        .expect('RateLimit-Limit', /^\d+$/); // Check rate limit header exists
 
-      expect(response.body.success).toBe(true);
+      expect(response.headers['ratelimit-limit']).toBeDefined();
+      expect(response.headers['ratelimit-remaining']).toBeDefined();
     });
 
-    it('should handle non-existent email gracefully', async () => {
-      const response = await request(app)
-        .post('/api/auth/forgot-password')
-        .send({ email: 'nonexistent@example.com' })
-        .expect(200); // Still return 200 for security reasons
-
-      expect(response.body.success).toBe(true);
-    });
+    // Testing caching would require mocking Redis functions
+    // which is usually done at the unit test level
   });
 });

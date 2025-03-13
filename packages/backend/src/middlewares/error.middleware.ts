@@ -27,24 +27,25 @@ export class AppError extends Error {
 const handlePrismaKnownRequestError = (err: PrismaClientKnownRequestError) => {
   let message = 'Database error occurred';
   let statusCode = 500;
+  let code = 'DATABASE_ERROR';
 
-  // Handle unique constraint violations
-  if (err.code === 'P2002') {
-    const field = (err.meta?.target as string[]) || ['field'];
-    message = `Duplicate value for ${field.join(', ')}. Please use another value.`;
-    statusCode = 409;
-  }
-
-  // Handle not found errors
-  if (err.code === 'P2025') {
-    message = 'Record not found';
-    statusCode = 404;
-  }
-
-  // Handle foreign key constraint failures
-  if (err.code === 'P2003') {
-    message = 'Related record not found';
-    statusCode = 400;
+  switch (err.code) {
+    case 'P2002':
+      const field = (err.meta?.target as string[]) || ['field'];
+      message = `Duplicate value for ${field.join(', ')}. Please use another value.`;
+      statusCode = 409;
+      code = 'DUPLICATE_ENTRY';
+      break;
+    case 'P2025':
+      message = 'Record not found';
+      statusCode = 404;
+      code = 'NOT_FOUND';
+      break;
+    case 'P2003':
+      message = 'Related record not found';
+      statusCode = 400;
+      code = 'FOREIGN_KEY_CONSTRAINT';
+      break;
   }
 
   return new AppError(message, statusCode);
@@ -70,21 +71,15 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || 'error';
+  let error = err;
+  if (!(error instanceof Error)) {
+    error = new AppError('An unknown error occurred', 500);
+  }
 
-  // Log the error
-  logger.error(
-    `${err.statusCode} - ${err.message} - ${req.originalUrl} - ${req.method} - ${req.ip}`,
-    {
-      stack: err.stack,
-    }
-  );
+  const statusCode = error instanceof AppError ? error.statusCode : 500;
 
-  // Specific error handling
-  let error = { ...err };
-  error.message = err.message;
-  error.stack = err.stack;
+  let message = error.message;
+  let errorCode = 'INTERNAL_ERROR';
 
   // Handle specific errors
   if (error instanceof PrismaClientKnownRequestError) {
@@ -100,6 +95,16 @@ export const errorHandler = (
     error = handleJWTExpiredError();
   }
 
+  // Logging
+  logger.error({
+    statusCode: error instanceof AppError ? error.statusCode : 500,
+    message: error.message,
+    method: req.method,
+    path: req.originalUrl,
+    ip: req.ip,
+    stack: config.NODE_ENV === 'development' ? error.stack : undefined, // Hide stack trace in production
+  });
+
   // Development error response - with stack trace
   if (config.NODE_ENV === 'development') {
     sendError(res, error.message, error.statusCode, error.code, error.stack);
@@ -108,15 +113,11 @@ export const errorHandler = (
 
   // Production error response - without sensitive error details
   // Don't leak operational details for security reasons
-  if (error.isOperational) {
-    sendError(res, error.message, error.statusCode, error.code);
+  if (error instanceof AppError && error.isOperational) {
+    sendError(res, message, statusCode, errorCode);
     return;
   }
 
   // Generic error message for non-operational errors in production
-  res.status(500).json({
-    status: 'error',
-    message: 'Something went wrong',
-  });
-  return;
+  sendError(res, 'Something went wrong', 500, 'INTERNAL_ERROR');
 };

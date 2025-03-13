@@ -1,7 +1,10 @@
 // media.routes.ts
 import { Router } from 'express';
 import { authenticate, restrictTo } from '../../middlewares/auth.middleware';
-import { validate } from '../../middlewares/validation.middleware';
+import {
+  validate,
+  validateQueryParams,
+} from '../../middlewares/validation.middleware';
 import { cacheMiddleware } from '../../middlewares/cache.middleware';
 import { rateLimiter } from '../../middlewares/rateLimiter.middleware';
 import * as mediaController from './media.controller';
@@ -14,6 +17,15 @@ const router = Router();
 
 router.get(
   '/',
+  validateQueryParams([
+    'page',
+    'limit',
+    'type',
+    'genre',
+    'search',
+    'sortBy',
+    'sortOrder',
+  ]),
   cacheMiddleware({ ttl: 300 }), // Cache for 5 minutes
   rateLimiter,
   validate(mediaValidation.getAllMediaValidation),

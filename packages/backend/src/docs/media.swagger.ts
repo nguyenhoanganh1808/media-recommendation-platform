@@ -32,23 +32,87 @@ export const mediaDocs = {
           totalPages: { type: 'integer', example: 10 },
         },
       },
+
       MediaCreate: {
         type: 'object',
-        required: ['title', 'type', 'genre', 'releaseDate'],
+        required: ['title', 'mediaType', 'genres', 'releaseDate'],
         properties: {
           title: { type: 'string', example: 'Inception' },
-          type: {
+          description: {
             type: 'string',
-            enum: ['movie', 'tv', 'anime'],
-            example: 'movie',
+            example: 'A mind-bending thriller',
+            nullable: true,
           },
-          genre: { type: 'string', example: 'Sci-Fi' },
-          popularity: { type: 'number', example: 9.5 },
           releaseDate: {
             type: 'string',
-            format: 'date',
-            example: '2010-07-16',
+            format: 'date-time',
+            example: '2010-07-16T00:00:00Z',
           },
+          mediaType: {
+            type: 'string',
+            enum: ['MOVIE', 'MANGA', 'GAME'],
+            example: 'MOVIE',
+          },
+          status: {
+            type: 'string',
+            enum: ['UPCOMING', 'RELEASED', 'DISCONTINUED'],
+            example: 'COMPLETED',
+            nullable: true,
+          },
+          coverImage: {
+            type: 'string',
+            format: 'url',
+            example: 'https://example.com/cover.jpg',
+            nullable: true,
+          },
+          backdropImage: {
+            type: 'string',
+            format: 'url',
+            example: 'https://example.com/backdrop.jpg',
+            nullable: true,
+          },
+          genres: {
+            type: 'array',
+            items: { type: 'string' },
+            example: ['Sci-Fi', 'Action'],
+          },
+
+          duration: {
+            type: 'integer',
+            minimum: 1,
+            example: 148,
+            nullable: true,
+          },
+          director: {
+            type: 'string',
+            example: 'Christopher Nolan',
+            nullable: true,
+          },
+
+          developer: { type: 'string', example: 'Naughty Dog', nullable: true },
+          publisher: {
+            type: 'string',
+            example: 'Sony Interactive Entertainment',
+            nullable: true,
+          },
+          platforms: {
+            type: 'array',
+            items: { type: 'string' },
+            example: ['PS5', 'PC'],
+            nullable: true,
+          },
+
+          author: { type: 'string', example: 'Eiichiro Oda', nullable: true },
+          artist: { type: 'string', example: 'Takehiko Inoue', nullable: true },
+          volumeCount: {
+            type: 'integer',
+            minimum: 0,
+            example: 100,
+            nullable: true,
+          },
+          isCompleted: { type: 'boolean', example: true, nullable: true },
+
+          popularity: { type: 'number', example: 9.5, nullable: true },
         },
       },
       MediaUpdate: {

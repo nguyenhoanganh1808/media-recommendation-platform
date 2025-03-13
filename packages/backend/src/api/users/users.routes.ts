@@ -16,8 +16,8 @@ const router = Router();
 router.post(
   '/',
   authenticate,
-  validate(userValidation.createUserValidation),
   restrictTo(Role.ADMIN),
+  validate(userValidation.createUserValidation),
   userController.createUser
 );
 

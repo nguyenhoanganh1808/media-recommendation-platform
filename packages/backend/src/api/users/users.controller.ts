@@ -8,7 +8,6 @@ export const createUser = asyncHandler(async (req: Request, res: Response) => {
   const userData = req.body;
 
   // Remove sensitive fields
-  delete userData.role; // Only admins should be able to set roles
 
   const user = await userService.createUser(userData);
 
