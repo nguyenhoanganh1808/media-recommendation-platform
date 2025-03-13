@@ -231,6 +231,7 @@ describe('Media API Routes', () => {
       status: 'RELEASED',
       developer: 'Test Developer',
       publisher: 'Test Publisher',
+      platforms: [],
       // genres: [testGenre.id],
     };
 

@@ -27,7 +27,12 @@ export const validate = (validations: ValidationChain[]) => {
 
     // Return validation error response
     return next(
-      new AppError('Validation failed. Please check your input.', 400)
+      new AppError(
+        'Validation failed. Please check your input.',
+        400,
+        'VALIDATION_ERROR',
+        extractedErrors
+      )
     );
   };
 };

@@ -9,6 +9,8 @@ export interface ApiResponse<T> {
   data?: T;
   error?: {
     code: string;
+    stack?: string;
+
     // statusCode: number;
     details?: any;
   };
@@ -66,18 +68,20 @@ export const sendError = (
   message = 'Operation failed',
   statusCode = 400,
   errorCode = 'BAD_REQUEST',
-  details?: any
+  stack?: any,
+  details?: Record<string, string>
 ): void => {
   const response: ApiResponse<null> = {
     success: false,
     message,
     error: {
       code: errorCode,
+      details,
     },
   };
 
   if (details) {
-    response.error!.details = details;
+    response.error!.stack = stack;
   }
 
   res.status(statusCode).json(response);

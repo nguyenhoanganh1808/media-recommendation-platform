@@ -12,12 +12,21 @@ export class AppError extends Error {
   statusCode: number;
   status: string;
   isOperational: boolean;
+  errorCode?: string;
+  details?: Record<string, string>;
 
-  constructor(message: string, statusCode: number) {
+  constructor(
+    message: string,
+    statusCode: number,
+    errorCode?: string,
+    details?: Record<string, string>
+  ) {
     super(message);
     this.statusCode = statusCode;
     this.status = `${statusCode}`.startsWith('4') ? 'fail' : 'error';
     this.isOperational = true;
+    this.errorCode = errorCode;
+    this.details = details;
 
     Error.captureStackTrace(this, this.constructor);
   }
@@ -77,9 +86,10 @@ export const errorHandler = (
   }
 
   const statusCode = error instanceof AppError ? error.statusCode : 500;
-
   let message = error.message;
-  let errorCode = 'INTERNAL_ERROR';
+  let errorCode =
+    error instanceof AppError ? error.errorCode : 'INTERNAL_ERROR';
+  let details = error instanceof AppError ? error.details : undefined;
 
   // Handle specific errors
   if (error instanceof PrismaClientKnownRequestError) {
@@ -103,18 +113,26 @@ export const errorHandler = (
     path: req.originalUrl,
     ip: req.ip,
     stack: config.NODE_ENV === 'development' ? error.stack : undefined, // Hide stack trace in production
+    details,
   });
 
   // Development error response - with stack trace
   if (config.NODE_ENV === 'development') {
-    sendError(res, error.message, error.statusCode, error.code, error.stack);
+    sendError(
+      res,
+      error.message,
+      error.statusCode,
+      error.code,
+      error.stack,
+      details
+    );
     return;
   }
 
   // Production error response - without sensitive error details
   // Don't leak operational details for security reasons
   if (error instanceof AppError && error.isOperational) {
-    sendError(res, message, statusCode, errorCode);
+    sendError(res, message, error.statusCode, errorCode, undefined, details);
     return;
   }
 
