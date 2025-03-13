@@ -19,11 +19,10 @@ import { disconnectRedis } from './config/redis';
 // Import routes
 import authRoutes from './api/auth/auth.routes';
 import userRoutes from './api/users/users.routes';
-import password from './utils/password';
 import mediaRoutes from './api/media/media.routes';
 // import ratingRoutes from './api/ratings/ratings.routes';
 // import reviewRoutes from './api/media/media.routes';
-// import listRoutes from './api/lists/lists.routes';
+import listRoutes from './api/lists/lists.routes';
 // import recommendationRoutes from './api/recommendations/recommendations.routes';
 // import notificationRoutes from './api/notifications/notifications.routes';
 
@@ -31,6 +30,7 @@ import mediaRoutes from './api/media/media.routes';
 import { authDocs } from './docs/auth.swagger';
 import { userDocs } from './docs/user.swagger';
 import { mediaDocs } from './docs/media.swagger';
+import { listsDocs } from './docs/list.swagger';
 
 // Initialize Express application
 const app: Express = express();
@@ -55,6 +55,11 @@ const swaggerOptions = {
       ...authDocs.paths,
       ...userDocs.paths,
       ...mediaDocs.paths,
+      ...listsDocs.paths,
+      // ...ratingDocs.paths,
+      // ...reviewDocs.paths,
+      // ...recommendationDocs.paths,
+      // ...notificationDocs.paths,
     },
     components: {
       securitySchemes: {
@@ -157,7 +162,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/media', mediaRoutes);
 // app.use('/api/v1/ratings', ratingRoutes);
 // app.use('/api/v1/reviews', reviewRoutes);
-// app.use('/api/v1/lists', listRoutes);
+app.use('/api/lists', listRoutes);
 // app.use('/api/v1/recommendations', recommendationRoutes);
 // app.use('/api/v1/notifications', notificationRoutes);
 

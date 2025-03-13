@@ -7,7 +7,10 @@ import {
   validateQueryParams,
 } from '../../middlewares/validation.middleware';
 import * as listsValidation from './lists.validation';
-import { cacheMiddleware } from '../../middlewares/cache.middleware';
+import {
+  cacheMiddleware,
+  userCacheMiddleware,
+} from '../../middlewares/cache.middleware';
 
 const router = Router();
 
@@ -18,14 +21,14 @@ router.use(authenticate);
 router.get(
   '/',
   validateQueryParams(['page', 'limit']),
-  cacheMiddleware({ ttl: 300, keyPrefix: 'lists:user:' }),
+  userCacheMiddleware({ ttl: 300 }),
   listsController.getUserLists
 );
 
 // Get a specific list by ID
 router.get(
   '/:id',
-  cacheMiddleware({ ttl: 300, keyPrefix: 'lists:single:' }),
+  userCacheMiddleware({ ttl: 300 }),
   listsController.getListById
 );
 
