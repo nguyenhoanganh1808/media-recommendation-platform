@@ -81,6 +81,20 @@ export const authDocs = {
         description: 'Logout a user by invalidating the refresh token.',
         tags: ['Auth'],
         security: [{ BearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  refreshToken: { type: 'string' },
+                },
+                required: ['refreshToken'],
+              },
+            },
+          },
+        },
         responses: {
           200: { description: 'Logout successful' },
           401: { description: 'Unauthorized' },

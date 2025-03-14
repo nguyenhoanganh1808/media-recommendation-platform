@@ -45,13 +45,16 @@ describe('User API', () => {
 
   describe('POST /api/users', () => {
     it('should create a new user', async () => {
-      const response = await request(app).post('/api/users').send({
-        email: 'newuser@example.com',
-        username: 'newuser',
-        password: 'Password123',
-        firstName: 'New',
-        lastName: 'User',
-      });
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          email: 'newuser@example.com',
+          username: 'newuser',
+          password: 'Password123',
+          firstName: 'New',
+          lastName: 'User',
+        });
 
       expect(response.status).toBe(201);
       expect(response.body.success).toBe(true);
@@ -60,11 +63,14 @@ describe('User API', () => {
     });
 
     it('should return validation error for invalid data', async () => {
-      const response = await request(app).post('/api/users').send({
-        email: 'invalid-email',
-        username: 'a', // Too short
-        password: 'short', // Too short
-      });
+      const response = await request(app)
+        .post('/api/users')
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({
+          email: 'invalid-email',
+          username: 'a', // Too short
+          password: 'short', // Too short
+        });
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
@@ -73,7 +79,9 @@ describe('User API', () => {
 
   describe('GET /api/users/:id', () => {
     it('should return user data', async () => {
-      const response = await request(app).get(`/api/users/${userId}`);
+      const response = await request(app)
+        .get(`/api/users/${userId}`)
+        .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -86,9 +94,9 @@ describe('User API', () => {
     });
 
     it('should return 404 for non-existent user', async () => {
-      const response = await request(app).get(
-        '/api/users/00000000-0000-0000-0000-000000000000'
-      );
+      const response = await request(app)
+        .get('/api/users/00000000-0000-0000-0000-000000000000')
+        .set('Authorization', `Bearer ${userToken}`);
 
       expect(response.status).toBe(404);
       expect(response.body.success).toBe(false);
