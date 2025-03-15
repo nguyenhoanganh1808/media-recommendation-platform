@@ -5,11 +5,11 @@ import { connectRedis, disconnectRedis } from '../src/config/redis';
 beforeAll(async () => {
   // Set up any global configurations (e.g., database connection)
   await connectDB();
-  // await connectRedis();
+  await connectRedis();
 });
 
 afterAll(async () => {
   // Clean up any global configurations (e.g., database connection)
   await disconnectDB();
-  // await disconnectRedis();
+  await disconnectRedis();
 });

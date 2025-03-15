@@ -33,7 +33,7 @@ export const getListById = asyncHandler(async (req: Request, res: Response) => {
   const { id } = req.params;
   const userId = req.user!.id;
 
-  const list = listService.getListById(id, userId);
+  const list = await listService.getListById(id, userId);
 
   sendSuccess(res, list, 'List retrieved successfully');
 });
@@ -132,7 +132,7 @@ export const reorderListItems = asyncHandler(
     }
 
     // Transaction to update all items at once
-    const updates = listService.reorderListItems(listId, items);
+    const updates = await listService.reorderListItems(listId, items);
 
     sendSuccess(res, updates, 'List items reordered successfully');
   }
