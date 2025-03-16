@@ -14,31 +14,24 @@ let testUser = {
 let accessToken = '';
 let refreshToken = '';
 
+let testUserId: string | null = null;
+
 beforeAll(async () => {
   server = app;
   await prisma.refreshToken.deleteMany({});
-
   await prisma.follow.deleteMany({});
-
-  await prisma.user.deleteMany({});
+  await prisma.user.deleteMany({ where: { email: testUser.email } });
 
   testUser.hashedPassword = await hashPassword(testUser.password);
+
+  // Create test user and store their ID
 });
 
 afterAll(async () => {
-  // Clean up test data
-  await prisma.refreshToken.deleteMany({
-    where: {
-      user: {
-        email: testUser.email,
-      },
-    },
-  });
-  await prisma.user.deleteMany({
-    where: {
-      email: testUser.email,
-    },
-  });
+  if (testUserId) {
+    await prisma.refreshToken.deleteMany({ where: { userId: testUserId } });
+    await prisma.user.deleteMany({ where: { id: testUserId } });
+  }
 });
 
 describe('Auth API', () => {
@@ -59,6 +52,7 @@ describe('Auth API', () => {
       expect(res.body.data.user.email).toBe(testUser.email);
       expect(res.body.data).toHaveProperty('accessToken');
       expect(res.body.data).toHaveProperty('refreshToken');
+      testUserId = res.body.data.user.id;
     });
 
     it('should not register a user with existing email', async () => {

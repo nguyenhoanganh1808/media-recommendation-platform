@@ -293,7 +293,8 @@ describe('Lists Controller Unit Tests', () => {
       // Assert
       expect(mockListService.updateListItem).toHaveBeenCalledWith(
         'item-123',
-        'Updated notes'
+        'Updated notes',
+        mockRequest.user
       );
       expect(mockSendSuccess).toHaveBeenCalledWith(
         mockResponse,

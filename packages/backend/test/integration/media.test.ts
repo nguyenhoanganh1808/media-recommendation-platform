@@ -25,12 +25,14 @@ describe('Media API Routes', () => {
   let userToken: string;
   let testMedia: any;
   let testGenre: Genre;
+  let createdUserIds: string[] = [];
+  let createdGenreIds: string[] = [];
+  let createdMediaIds: string[] = [];
 
   // Setup before tests
   beforeAll(async () => {
     // Create test users with different roles
-
-    adminUser = await prisma.user.create({
+    const admin = await prisma.user.create({
       data: {
         email: 'admin@test.com',
         username: 'admin_test',
@@ -38,8 +40,10 @@ describe('Media API Routes', () => {
         role: Role.ADMIN,
       },
     });
+    adminUser = admin;
+    createdUserIds.push(admin.id);
 
-    moderatorUser = await prisma.user.create({
+    const moderator = await prisma.user.create({
       data: {
         email: 'moderator@test.com',
         username: 'moderator_test',
@@ -47,8 +51,10 @@ describe('Media API Routes', () => {
         role: Role.MODERATOR,
       },
     });
+    moderatorUser = moderator;
+    createdUserIds.push(moderator.id);
 
-    regularUser = await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         email: 'user@test.com',
         username: 'user_test',
@@ -56,24 +62,26 @@ describe('Media API Routes', () => {
         role: Role.USER,
       },
     });
+    regularUser = user;
+    createdUserIds.push(user.id);
 
     // Create JWT tokens
     adminToken = generateAccessToken(adminUser);
-
     moderatorToken = generateAccessToken(moderatorUser);
-
     userToken = generateAccessToken(regularUser);
 
     // Create a test genre
-    testGenre = await prisma.genre.create({
+    const genre = await prisma.genre.create({
       data: {
         name: 'Test Genre',
         description: 'A genre for testing',
       },
     });
+    testGenre = genre;
+    createdGenreIds.push(genre.id);
 
     // Create test media
-    testMedia = await prisma.media.create({
+    const media = await prisma.media.create({
       data: {
         title: 'Test Media',
         description: 'A test media item',
@@ -85,24 +93,44 @@ describe('Media API Routes', () => {
           create: [
             {
               genre: {
-                connect: { id: testGenre.id },
+                connect: { id: genre.id },
               },
             },
           ],
         },
       },
     });
+    testMedia = media;
+    createdMediaIds.push(media.id);
   });
 
   // Cleanup after tests
   afterAll(async () => {
     // Clean up all test data
-    await prisma.mediaRating.deleteMany({});
-    await prisma.mediaReview.deleteMany({});
-    await prisma.genreOnMedia.deleteMany({});
-    await prisma.media.deleteMany({});
-    await prisma.genre.deleteMany({});
-    await prisma.user.deleteMany({});
+    try {
+      // Delete only the test media created
+      if (createdMediaIds.length) {
+        await prisma.media.deleteMany({
+          where: { id: { in: createdMediaIds } },
+        });
+      }
+
+      // Delete test genres
+      if (createdGenreIds.length) {
+        await prisma.genre.deleteMany({
+          where: { id: { in: createdGenreIds } },
+        });
+      }
+
+      // Delete test users
+      if (createdUserIds.length) {
+        await prisma.user.deleteMany({
+          where: { id: { in: createdUserIds } },
+        });
+      }
+    } catch (error) {
+      logger.error('Error during cleanup:', error);
+    }
   });
 
   describe('GET /api/media', () => {

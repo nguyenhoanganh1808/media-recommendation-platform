@@ -1,4 +1,3 @@
-// tests/integration/user.api.test.ts
 import request from 'supertest';
 import app from '../../src/app';
 import { prisma } from '../../src/config/database';
@@ -16,19 +15,22 @@ describe('User API', () => {
   let userToken: string;
   let adminToken: string;
 
+  let createdUserIds: string[] = []; // Track created users
+
   beforeAll(async () => {
-    // Create a test user and admin for testing
+    // Create test users
     const user = await prisma.user.create({
       data: {
         email: 'testuser@example.com',
         username: 'testuser',
-        password: 'hashedpassword', // In real tests, use actual hashed password
+        password: 'hashedpassword',
         isActive: true,
         role: 'USER',
       },
     });
     userId = user.id;
     userToken = generateAccessToken(user);
+    createdUserIds.push(userId);
 
     const admin = await prisma.user.create({
       data: {
@@ -41,6 +43,14 @@ describe('User API', () => {
     });
     adminId = admin.id;
     adminToken = generateAccessToken(admin);
+    createdUserIds.push(adminId);
+  });
+
+  afterAll(async () => {
+    // Only delete users created in this test
+    await prisma.user.deleteMany({
+      where: { id: { in: createdUserIds } },
+    });
   });
 
   describe('POST /api/users', () => {
@@ -60,6 +70,9 @@ describe('User API', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toHaveProperty('email', 'newuser@example.com');
       expect(response.body.data).not.toHaveProperty('password');
+
+      // Track the newly created user for cleanup
+      createdUserIds.push(response.body.data.id);
     });
 
     it('should return validation error for invalid data', async () => {
@@ -118,7 +131,7 @@ describe('User API', () => {
     });
 
     it('should deny update when not authenticated as the user', async () => {
-      // Create a second user
+      // Create a second user and track it
       const user2 = await prisma.user.create({
         data: {
           email: 'user2@example.com',
@@ -129,6 +142,7 @@ describe('User API', () => {
         },
       });
       const user2Token = generateAccessToken(user2);
+      createdUserIds.push(user2.id);
 
       const response = await request(app)
         .patch(`/api/users/${userId}`)
