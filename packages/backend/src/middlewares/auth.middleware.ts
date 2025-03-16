@@ -43,7 +43,7 @@ export const authenticate = (
         return next(new AppError('User account is not active', 403));
       }
 
-      req.user = user;
+      req.user = user!;
       next();
     }
   )(req, res, next);

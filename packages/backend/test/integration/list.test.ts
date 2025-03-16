@@ -26,6 +26,7 @@ describe('Lists API Integration Tests', () => {
   let userId: string;
   let listId: string;
   let mediaId: string;
+  let secondMediaId: string;
   let listItemId: string;
 
   // Test user data
@@ -54,7 +55,9 @@ describe('Lists API Integration Tests', () => {
       where: { listId: { contains: 'test' } },
     });
     await prisma.mediaList.deleteMany({ where: { userId: testUser.id } });
-    await prisma.media.deleteMany({ where: { id: mediaId } });
+    await prisma.media.deleteMany({
+      where: { OR: [{ id: mediaId }, { id: secondMediaId }] },
+    });
     await prisma.user.deleteMany({ where: { id: testUser.id } });
 
     // Create test user
@@ -98,11 +101,47 @@ describe('Lists API Integration Tests', () => {
         isCompleted: null,
       },
     });
+    const secondMedia = await prisma.media.create({
+      data: {
+        title: 'interstellar',
+        originalTitle: 'interstellar',
+        description: 'A film about space and time travel.',
+        releaseDate: new Date('2008-07-18'),
+        mediaType: 'MOVIE',
+        status: 'RELEASED',
+        coverImage: 'https://example.com/dark-knight-cover.jpg',
+        backdropImage: 'https://example.com/dark-knight-backdrop.jpg',
+        popularity: 9.5,
+        averageRating: 8.9,
+        ratingsCount: 1000000,
+
+        // Movie-specific attributes
+        duration: 152,
+        director: 'Christopher Nolan',
+
+        // Common relations (empty for now)
+        genres: { create: [] },
+        ratings: { create: [] },
+        reviews: { create: [] },
+        listItems: { create: [] },
+        externalIds: { create: [] },
+
+        // Optional attributes for other media types (set to null)
+        developer: null,
+        publisher: null,
+
+        author: null,
+        artist: null,
+        volumeCount: null,
+        isCompleted: null,
+      },
+    });
 
     // Generate auth token for test user
     userId = testUser.id;
     authToken = generateAccessToken(testUser);
     mediaId = newMedia.id;
+    secondMediaId = secondMedia.id;
   });
 
   // Clean up after all tests
@@ -111,7 +150,9 @@ describe('Lists API Integration Tests', () => {
       where: { listId: { contains: 'test' } },
     });
     await prisma.mediaList.deleteMany({ where: { userId: testUser.id } });
-    await prisma.media.deleteMany({ where: { id: mediaId } });
+    await prisma.media.deleteMany({
+      where: { OR: [{ id: mediaId }, { id: secondMediaId }] },
+    });
     await prisma.user.deleteMany({ where: { id: testUser.id } });
     await prisma.$disconnect();
   });
@@ -151,7 +192,7 @@ describe('Lists API Integration Tests', () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.errors).toBeDefined();
+      expect(response.body.error).toBeDefined();
     });
 
     it('should reject unauthorized request', async () => {
@@ -174,7 +215,7 @@ describe('Lists API Integration Tests', () => {
       expect(response.body.success).toBe(true);
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(response.body.data.length).toBeGreaterThan(0);
-      expect(response.body.pagination).toBeDefined();
+      expect(response.body.meta.pagination).toBeDefined();
     });
 
     it('should support pagination', async () => {
@@ -183,8 +224,8 @@ describe('Lists API Integration Tests', () => {
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.pagination.page).toBe(1);
-      expect(response.body.pagination.limit).toBe(5);
+      expect(response.body.meta.pagination.page).toBe(1);
+      expect(response.body.meta.pagination.limit).toBe(5);
     });
   });
 
@@ -330,12 +371,11 @@ describe('Lists API Integration Tests', () => {
 
   describe('Reorder list items', () => {
     it('should reorder items in a list', async () => {
-      // First, add another item to the list
       const addResponse = await request(app)
         .post(`/api/lists/${listId}/items`)
         .set('Authorization', `Bearer ${authToken}`)
         .send({
-          mediaId: mediaId + '1', // Using a different mediaId
+          mediaId: secondMediaId, // Using a different mediaId
           notes: 'Second item',
         });
 
@@ -453,7 +493,7 @@ describe('Lists API Integration Tests', () => {
 
     it('should return public lists from a user', async () => {
       const response = await request(app)
-        .get(`/api/lists/public/${userId}`)
+        .get(`/api/lists/user/${userId}/public`)
         .set('Authorization', `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);

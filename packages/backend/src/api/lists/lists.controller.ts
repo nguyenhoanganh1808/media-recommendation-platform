@@ -106,7 +106,11 @@ export const updateListItem = asyncHandler(
     const { itemId } = req.params;
     const { notes } = req.body;
 
-    const updatedItem = await listService.updateListItem(itemId, notes);
+    const updatedItem = await listService.updateListItem(
+      itemId,
+      notes,
+      req.user!
+    );
 
     sendSuccess(res, updatedItem, 'List item updated successfully');
   }
@@ -145,9 +149,7 @@ export const removeItemFromList = asyncHandler(
   async (req: Request, res: Response) => {
     const { itemId } = req.params;
 
-    await prisma.mediaListItem.delete({
-      where: { id: itemId },
-    });
+    await listService.removeItemFromList(itemId, req.user!.id);
 
     sendSuccess(res, null, 'Item removed from list successfully');
   }

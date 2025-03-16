@@ -1,6 +1,6 @@
 import { prisma } from '../../config/database';
 import { AppError } from '../../middlewares/error.middleware';
-import { MediaList, MediaListItem } from '@prisma/client';
+import { MediaList, MediaListItem, User } from '@prisma/client';
 import { clearCacheByPattern } from '../../middlewares/cache.middleware';
 import { createPagination } from '../../utils/responseFormatter';
 import asyncHandler from '../../utils/asyncHandler';
@@ -137,7 +137,10 @@ export const addItemToList = async (
 /**
  * Remove an item from a list
  */
-export const removeItemFromList = async (itemId: string): Promise<void> => {
+export const removeItemFromList = async (
+  itemId: string,
+  userId: string
+): Promise<void> => {
   const item = await prisma.mediaListItem.findUnique({
     where: { id: itemId },
     include: {
@@ -147,6 +150,10 @@ export const removeItemFromList = async (itemId: string): Promise<void> => {
 
   if (!item) {
     throw new AppError('List item not found', 404);
+  }
+
+  if (item.list.userId !== userId) {
+    throw new AppError('Forbidden - User does not own this list', 403);
   }
 
   await prisma.mediaListItem.delete({
@@ -400,7 +407,30 @@ export const getListById = async (
   return formattedList;
 };
 
-export const updateListItem = async (itemId: string, notes: string) => {
+export const updateListItem = async (
+  itemId: string,
+  notes: string,
+  user: Express.User
+) => {
+  const item = await prisma.mediaListItem.findUnique({
+    where: { id: itemId },
+    include: {
+      list: true,
+    },
+  });
+
+  if (!item) {
+    throw new AppError('List item not found', 404);
+  }
+
+  if (
+    item.list.userId !== user.id &&
+    user.role !== 'ADMIN' &&
+    user.role !== 'MODERATOR'
+  ) {
+    throw new AppError('Forbidden - User does not own this list', 403);
+  }
+
   return await prisma.mediaListItem.update({
     where: { id: itemId },
     data: {

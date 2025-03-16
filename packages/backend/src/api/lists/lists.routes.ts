@@ -62,7 +62,6 @@ router.post(
 router.put(
   '/items/:itemId',
   validate(listsValidation.updateItemValidation),
-  checkOwnership('mediaListItem', 'itemId'),
   listsController.updateListItem
 );
 
@@ -75,11 +74,7 @@ router.put(
 );
 
 // Remove item from list
-router.delete(
-  '/items/:itemId',
-  checkOwnership('mediaListItem', 'itemId'),
-  listsController.removeItemFromList
-);
+router.delete('/items/:itemId', listsController.removeItemFromList);
 
 // Get public lists from a user
 router.get(
