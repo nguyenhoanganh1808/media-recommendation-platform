@@ -3,6 +3,7 @@ import { prisma } from '../../config/database';
 import { MediaRating } from '@prisma/client';
 import { AppError } from '../../middlewares/error.middleware';
 import { clearCacheByPattern } from '../../middlewares/cache.middleware';
+import { createPagination } from '../../utils/responseFormatter';
 
 /**
  * Create a new media rating
@@ -241,7 +242,7 @@ export const getMediaRatings = async (
   mediaId: string,
   page: number = 1,
   limit: number = 10
-): Promise<{ ratings: MediaRating[]; total: number }> => {
+): Promise<{ ratings: MediaRating[]; pagination: any }> => {
   const skip = (page - 1) * limit;
 
   const [ratings, total] = await Promise.all([
@@ -265,7 +266,9 @@ export const getMediaRatings = async (
     }),
   ]);
 
-  return { ratings, total };
+  const pagination = createPagination(page, limit, total);
+
+  return { ratings, pagination };
 };
 
 /**
@@ -275,7 +278,7 @@ export const getUserRatings = async (
   userId: string,
   page: number = 1,
   limit: number = 10
-): Promise<{ ratings: MediaRating[]; total: number }> => {
+): Promise<{ ratings: MediaRating[]; pagination: any }> => {
   const skip = (page - 1) * limit;
 
   const [ratings, total] = await Promise.all([
@@ -301,5 +304,7 @@ export const getUserRatings = async (
     }),
   ]);
 
-  return { ratings, total };
+  const pagination = createPagination(page, limit, total);
+
+  return { ratings, pagination };
 };
