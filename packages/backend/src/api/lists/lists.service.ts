@@ -28,7 +28,7 @@ export const createList = async (
   });
 
   // Clear user lists cache
-  await clearCacheByPattern(`lists:user:${userId}`);
+  await clearCacheByPattern(`user:${userId}:/api/lists`);
 
   return newList;
 };
@@ -58,8 +58,7 @@ export const updateList = async (
   });
 
   // Clear list caches
-  await clearCacheByPattern(`lists:user:${list.userId}`);
-  await clearCacheByPattern(`lists:single:${listId}`);
+  await clearCacheByPattern(`user:${list.userId}:/api/lists`);
   if (updatedList.isPublic) {
     await clearCacheByPattern(`lists:public:${list.userId}`);
   }
@@ -125,8 +124,8 @@ export const addItemToList = async (
   });
 
   // Clear list caches
-  await clearCacheByPattern(`lists:single:${listId}`);
-  await clearCacheByPattern(`lists:user:${list.userId}`);
+
+  await clearCacheByPattern(`user:${list.userId}:/api/lists`);
   if (list.isPublic) {
     await clearCacheByPattern(`lists:public:${list.userId}`);
   }
@@ -161,8 +160,7 @@ export const removeItemFromList = async (
   });
 
   // Clear list caches
-  await clearCacheByPattern(`lists:single:${item.listId}`);
-  await clearCacheByPattern(`lists:user:${item.list.userId}`);
+  await clearCacheByPattern(`user:${item.list.userId}:/api/lists`);
   if (item.list.isPublic) {
     await clearCacheByPattern(`lists:public:${item.list.userId}`);
   }
@@ -199,8 +197,7 @@ export const reorderListItems = async (
   );
 
   // Clear list caches
-  await clearCacheByPattern(`lists:single:${listId}`);
-  await clearCacheByPattern(`lists:user:${list.userId}`);
+  await clearCacheByPattern(`user:${list.userId}:/api/lists`);
   if (list.isPublic) {
     await clearCacheByPattern(`lists:public:${list.userId}`);
   }

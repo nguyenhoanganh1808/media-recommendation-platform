@@ -21,7 +21,7 @@ router.use(authenticate);
 router.get(
   '/',
   validateQueryParams(['page', 'limit']),
-  userCacheMiddleware({ ttl: 300, keyPrefix: 'lists:' }),
+  userCacheMiddleware({ ttl: 300 }),
   listsController.getUserLists
 );
 

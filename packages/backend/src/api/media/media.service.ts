@@ -1,6 +1,5 @@
 // media.service.ts
 import { prisma } from '../../config/database';
-import { MediaType } from '@prisma/client';
 import { createPagination } from '../../utils/responseFormatter';
 
 interface MediaQueryParams {

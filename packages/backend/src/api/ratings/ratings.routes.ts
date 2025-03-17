@@ -1,7 +1,11 @@
 // src/api/ratings/ratings.routes.ts
 import { Router } from 'express';
 import * as ratingsController from './ratings.controller';
-import { authenticate, restrictTo } from '../../middlewares/auth.middleware';
+import {
+  authenticate,
+  checkOwnership,
+  restrictTo,
+} from '../../middlewares/auth.middleware';
 import { validate } from '../../middlewares/validation.middleware';
 import {
   createRatingValidation,
@@ -68,6 +72,7 @@ router.put(
 router.delete(
   '/:id',
   validate(deleteRatingValidation),
+  checkOwnership('mediaRating', 'id'),
   ratingsController.deleteRating
 );
 

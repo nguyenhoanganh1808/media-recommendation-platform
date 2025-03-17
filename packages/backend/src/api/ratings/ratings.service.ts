@@ -75,7 +75,7 @@ export const createRating = async (
 
   // Clear cache for this media and user ratings
   await clearCacheByPattern(`media:${mediaId}`);
-  await clearCacheByPattern(`user:${userId}:ratings`);
+  await clearCacheByPattern(`user:${userId}:/api/ratings`);
 
   return newRating;
 };
@@ -139,7 +139,7 @@ export const updateRating = async (
 
   // Clear cache for this media and user ratings
   await clearCacheByPattern(`media:${updatedRating.mediaId}`);
-  await clearCacheByPattern(`user:${userId}:ratings`);
+  await clearCacheByPattern(`user:${userId}:/api/ratings`);
 
   return updatedRating;
 };
@@ -158,14 +158,6 @@ export const deleteRating = async (
 
   if (!existingRating) {
     throw new AppError('Rating not found', 404, 'RATING_NOT_FOUND');
-  }
-
-  if (existingRating.userId !== userId) {
-    throw new AppError(
-      'You can only delete your own ratings',
-      403,
-      'UNAUTHORIZED'
-    );
   }
 
   // Delete the rating in a transaction to maintain consistency
@@ -200,7 +192,7 @@ export const deleteRating = async (
 
   // Clear cache for this media and user ratings
   await clearCacheByPattern(`media:${existingRating.mediaId}`);
-  await clearCacheByPattern(`user:${userId}:ratings`);
+  await clearCacheByPattern(`user:${userId}:/api/ratings`);
 };
 
 /**
@@ -280,6 +272,15 @@ export const getUserRatings = async (
   limit: number = 10
 ): Promise<{ ratings: MediaRating[]; pagination: any }> => {
   const skip = (page - 1) * limit;
+
+  // Check if user exists
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+  }
 
   const [ratings, total] = await Promise.all([
     prisma.mediaRating.findMany({

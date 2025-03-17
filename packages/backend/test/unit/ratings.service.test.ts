@@ -7,6 +7,9 @@ import { clearCacheByPattern } from '../../src/middlewares/cache.middleware';
 // Mock dependencies
 jest.mock('../../src/config/database', () => ({
   prisma: {
+    user: {
+      findUnique: jest.fn(),
+    },
     media: {
       findUnique: jest.fn(),
       update: jest.fn(),
@@ -32,6 +35,7 @@ describe('Ratings Service', () => {
   const mockMediaId = 'media-123';
   const mockRatingId = 'rating-123';
   const mockRating = 8.5;
+  const mockUser = { id: mockUserId, name: 'John Doe' };
   const mockMediaRating = {
     id: mockRatingId,
     userId: mockUserId,
@@ -100,7 +104,7 @@ describe('Ratings Service', () => {
       });
       expect(clearCacheByPattern).toHaveBeenCalledWith(`media:${mockMediaId}`);
       expect(clearCacheByPattern).toHaveBeenCalledWith(
-        `user:${mockUserId}:ratings`
+        `user:${mockUserId}:/api/ratings`
       );
       expect(result).toEqual(mockMediaRating);
     });
@@ -183,7 +187,7 @@ describe('Ratings Service', () => {
       });
       expect(clearCacheByPattern).toHaveBeenCalledWith(`media:${mockMediaId}`);
       expect(clearCacheByPattern).toHaveBeenCalledWith(
-        `user:${mockUserId}:ratings`
+        `user:${mockUserId}:/api/ratings`
       );
       expect(result).toEqual({
         ...mockMediaRating,
@@ -257,7 +261,7 @@ describe('Ratings Service', () => {
           `media:${mockMediaId}`
         );
         expect(clearCacheByPattern).toHaveBeenCalledWith(
-          `user:${mockUserId}:ratings`
+          `user:${mockUserId}:/api/ratings`
         );
       });
 
@@ -290,25 +294,6 @@ describe('Ratings Service', () => {
           ratingsService.deleteRating(mockRatingId, mockUserId)
         ).rejects.toThrow(
           new AppError('Rating not found', 404, 'RATING_NOT_FOUND')
-        );
-      });
-
-      it('should throw an error if user does not own the rating', async () => {
-        // Arrange
-        (prisma.mediaRating.findUnique as jest.Mock).mockResolvedValue({
-          ...mockMediaRating,
-          userId: 'different-user',
-        });
-
-        // Act & Assert
-        await expect(
-          ratingsService.deleteRating(mockRatingId, mockUserId)
-        ).rejects.toThrow(
-          new AppError(
-            'You can only delete your own ratings',
-            403,
-            'UNAUTHORIZED'
-          )
         );
       });
     });
@@ -430,6 +415,7 @@ describe('Ratings Service', () => {
           mockRatings
         );
         (prisma.mediaRating.count as jest.Mock).mockResolvedValue(mockTotal);
+        (prisma.user.findUnique as jest.Mock).mockResolvedValue(mockUser);
 
         // Act
         const result = await ratingsService.getUserRatings(mockUserId, 1, 10);
