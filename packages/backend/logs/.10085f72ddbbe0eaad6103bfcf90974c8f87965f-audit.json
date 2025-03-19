@@ -54,6 +54,11 @@
             "date": 1742176444872,
             "name": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\application-2025-03-17.log",
             "hash": "f4fd5400c5aca4e88b91948ac2b6ba2dfcb0994228046fdd12e5721a73be14b4"
+        },
+        {
+            "date": 1742343907522,
+            "name": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\application-2025-03-19.log",
+            "hash": "519b3928308bdaa97a8f80e5ae1d048e1d88be9ab92b41067db164431b355895"
         }
     ],
     "hashType": "sha256"
