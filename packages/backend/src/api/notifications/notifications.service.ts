@@ -283,16 +283,10 @@ export async function getNotificationSettings(
   };
 }
 
-/**
- * Update notification settings for a user
- * In a real application, you would update these settings in a database
- */
 export async function updateNotificationSettings(
   userId: string,
   settings: Partial<NotificationSettings>
 ): Promise<NotificationSettings> {
-  // In a real implementation, update in database
-  // For now, merge with defaults and return
   const currentSettings = await getNotificationSettings(userId);
   const updatedSettings = { ...currentSettings, ...settings };
 

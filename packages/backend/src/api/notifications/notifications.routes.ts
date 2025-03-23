@@ -1,18 +1,15 @@
 import { Router } from 'express';
-import { body, param, query } from 'express-validator';
 import * as notificationController from './notifications.controller';
 import { authenticate } from '../../middlewares/auth.middleware';
 import { validate } from '../../middlewares/validation.middleware';
 import { userCacheMiddleware } from '../../middlewares/cache.middleware';
 import { rateLimiter } from '../../middlewares/rateLimiter.middleware';
-import { getUserRatingsValidation } from '../ratings/ratings.validation';
 import {
   deleteNotificationValidation,
   getNotificationsValidation,
   markAsReadValidation,
   updateNotificationSettingsValidation,
 } from './notifications.validation';
-import { updateNotificationSettings } from './notifications.service';
 
 const router = Router();
 

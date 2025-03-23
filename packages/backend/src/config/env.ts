@@ -24,6 +24,7 @@ requiredEnvVars.forEach((varName) => {
 export const config = {
   // Node environment
   NODE_ENV: process.env.NODE_ENV,
+  SERVER_URL: process.env.SERVER_URL || 'http://localhost:3000',
 
   // Server configuration
   PORT: parseInt(process.env.PORT || '3000', 10),

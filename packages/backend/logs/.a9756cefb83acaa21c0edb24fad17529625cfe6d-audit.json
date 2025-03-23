@@ -6,11 +6,6 @@
     "auditLog": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\.a9756cefb83acaa21c0edb24fad17529625cfe6d-audit.json",
     "files": [
         {
-            "date": 1741423198341,
-            "name": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\error-2025-03-08.log",
-            "hash": "d40652978533d731a67719685d60f50bb47a4f6604bf64d4710e9a27f54c3ac7"
-        },
-        {
             "date": 1741487505279,
             "name": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\error-2025-03-09.log",
             "hash": "69c6ee9b6e0789e91e7484af12f4615e685b8c14074bc2a18bc7df36f613fe54"
@@ -59,6 +54,16 @@
             "date": 1742343907527,
             "name": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\error-2025-03-19.log",
             "hash": "d9f1614bff1a2424ee91b0257e1efd642af7f8a7d8f8c98134936f7c53c577a1"
+        },
+        {
+            "date": 1742602094533,
+            "name": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\error-2025-03-22.log",
+            "hash": "f2b4948aa49986a0832df63ed91313fe3539c416e75b221b070ed13a736668ed"
+        },
+        {
+            "date": 1742688193954,
+            "name": "C:\\Users\\Kira\\repos\\media-recommendation-platform\\packages\\backend\\logs\\error-2025-03-23.log",
+            "hash": "1797bfef43d8f92ac4499f001a9216079e6578f40c4364b353dd87973936b370"
         }
     ],
     "hashType": "sha256"

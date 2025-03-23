@@ -6,17 +6,17 @@ services:
     container_name: postgres_db
     restart: always
     environment:
-      POSTGRES_USER: zodd
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: media_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - '5433:5432'
+      - '${POSTGRES_PORT}:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - media-network
     healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U zodd -d media_db']
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
       interval: 5s
       timeout: 2s
       retries: 20
@@ -27,7 +27,7 @@ services:
     container_name: redis_cache
     restart: always
     ports:
-      - '6379:6379'
+      - '${REDIS_PORT}:6379'
     volumes:
       - redis_data:/data
     networks:
@@ -38,9 +38,11 @@ services:
       interval: 5s
       timeout: 2s
       retries: 20
+
 volumes:
   postgres_data:
   redis_data:
+
 networks:
   media-network:
     name: media-network

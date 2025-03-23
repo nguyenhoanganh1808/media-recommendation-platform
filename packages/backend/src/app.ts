@@ -23,96 +23,13 @@ import mediaRoutes from './api/media/media.routes';
 import ratingRoutes from './api/ratings/ratings.routes';
 // import reviewRoutes from './api/media/media.routes';
 import listRoutes from './api/lists/lists.routes';
-// import recommendationRoutes from './api/recommendations/recommendations.routes';
-// import notificationRoutes from './api/notifications/notifications.routes';
-
-// Import docs
-import { authDocs } from './docs/auth.swagger';
-import { userDocs } from './docs/user.swagger';
-import { mediaDocs } from './docs/media.swagger';
-import { listsDocs } from './docs/list.swagger';
+import recommendationRoutes from './api/recommendations/recommendations.routes';
+import notificationRoutes from './api/notifications/notifications.routes';
+import path from 'path';
+import { setupSwaggerRoutes } from '../scripts/generateSwagger';
 
 // Initialize Express application
 const app: Express = express();
-
-// Swagger documentation options
-const swaggerOptions = {
-  definition: {
-    openapi: '3.0.0',
-    info: {
-      title: 'Media Recommendation API',
-      version: '1.0.0',
-      description: 'API for a media recommendation platform',
-    },
-
-    servers: [
-      {
-        url: `http://localhost:${config.PORT}`,
-        description: 'Development server',
-      },
-    ],
-    paths: {
-      ...authDocs.paths,
-      ...userDocs.paths,
-      ...mediaDocs.paths,
-      ...listsDocs.paths,
-      // ...ratingDocs.paths,
-      // ...reviewDocs.paths,
-      // ...recommendationDocs.paths,
-      // ...notificationDocs.paths,
-    },
-    components: {
-      securitySchemes: {
-        BearerAuth: {
-          type: 'http',
-          scheme: 'bearer',
-          bearerFormat: 'JWT', // Optional: Specify the token format
-          description: 'Enter your access token in the format: Bearer <token>',
-        },
-      },
-      schemas: {
-        ...mediaDocs.components.schemas,
-        User: {
-          type: 'object',
-          required: ['username', 'email', 'password'],
-          properties: {
-            id: { type: 'string', example: '123' },
-            username: { type: 'string', example: 'john_doe' },
-            email: { type: 'string', example: 'john@example.com' },
-            password: { type: 'string', example: 'password123' },
-            firstName: { type: 'string', example: 'John' },
-            lastName: { type: 'string', example: 'Doe' },
-            bio: { type: 'string', example: 'Hello, my name is John Doe.' },
-            role: {
-              type: 'string',
-              enum: ['USER', 'ADMIN', 'MODERATOR'],
-              example: 'USER',
-            },
-          },
-        },
-        UpdateUser: {
-          type: 'object',
-          properties: {
-            username: { type: 'string', example: 'new_username' },
-            email: { type: 'string', example: 'new_email@example.com' },
-
-            firstName: { type: 'string', example: 'John' },
-            lastName: { type: 'string', example: 'Doe' },
-            bio: { type: 'string', example: 'Hello, my name is John Doe.' },
-          },
-        },
-      },
-    },
-    security: [
-      {
-        bearerAuth: [], // Apply this security scheme globally (optional)
-      },
-    ],
-  },
-  apis: ['./src/api/**/*.routes.ts', './src/api/**/*.validation.ts'],
-};
-
-const swaggerDocs = swaggerJsdoc(swaggerOptions);
 
 // Middleware
 app.use(
@@ -121,7 +38,29 @@ app.use(
     credentials: true,
   })
 );
-app.use(helmet());
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        scriptSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",
+          'cdn.jsdelivr.net',
+          'cdnjs.cloudflare.com',
+        ],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          'cdn.jsdelivr.net',
+          'cdnjs.cloudflare.com',
+        ],
+        imgSrc: ["'self'", 'data:', 'cdn.jsdelivr.net'],
+      },
+    },
+  })
+);
 app.use(compression());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
@@ -146,6 +85,9 @@ if (config.NODE_ENV === 'development') {
   );
 }
 
+// Swagger documentation
+setupSwaggerRoutes(app);
+
 // Health check endpoint
 app.get('/health', (_req: Request, res: Response) => {
   res
@@ -153,18 +95,16 @@ app.get('/health', (_req: Request, res: Response) => {
     .json({ status: 'success', message: 'API is running', data: null });
 });
 
-// API documentation
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+const API_PREFIX = config.API_PREFIX;
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/users', userRoutes);
-app.use('/api/media', mediaRoutes);
-app.use('/api/ratings', ratingRoutes);
-// app.use('/api/v1/reviews', reviewRoutes);
-app.use('/api/lists', listRoutes);
-// app.use('/api/v1/recommendations', recommendationRoutes);
-// app.use('/api/v1/notifications', notificationRoutes);
+app.use(`${API_PREFIX}/auth`, authRoutes);
+app.use(`${API_PREFIX}/users`, userRoutes);
+app.use(`${API_PREFIX}/media`, mediaRoutes);
+app.use(`${API_PREFIX}/ratings`, ratingRoutes);
+app.use(`${API_PREFIX}/lists`, listRoutes);
+app.use(`${API_PREFIX}/recommendations`, recommendationRoutes);
+app.use(`${API_PREFIX}/notifications`, notificationRoutes);
 
 // 404 handler
 app.all('*', (req: Request, res: Response) => {
