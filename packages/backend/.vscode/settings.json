@@ -1,4 +1,11 @@
 {
   "postman.settings.dotenv-detection-notification-visibility": false,
-  "cSpell.words": ["healthcheck", "isready", "loglevel", "zodd"]
+  "cSpell.words": [
+    "healthcheck",
+    "isready",
+    "loglevel",
+    "Prefs",
+    "testuser",
+    "zodd"
+  ]
 }

@@ -91,11 +91,11 @@ export class RecommendationJob {
 
         if (data.recommendations.length > 0) {
           // Cache recommendations
-          // await this.cacheService.setRecommendations(
-          //   user.id,
-          //   mediaType,
-          //   recommendations
-          // );
+          await this.cacheService.setRecommendations(
+            user.id,
+            mediaType,
+            data.recommendations
+          );
 
           newRecommendations = true;
         }
