@@ -3,6 +3,7 @@ import { CronJob } from "cron";
 import { logger } from "../config/logger";
 import { RecommendationJob } from "./recommendation.job";
 import { NotificationJob } from "./notification.job";
+import { config } from "../config/env";
 
 /**
  * Initialize and schedule all background jobs
@@ -10,9 +11,9 @@ import { NotificationJob } from "./notification.job";
 export const initializeJobs = (): void => {
   logger.info("Initializing background jobs");
 
-  // Schedule recommendation generation - runs every 4 hours
+  // Schedule recommendation generation - runs every 6 hours
   const recommendationJob = new CronJob(
-    "0 */4 * * *", // Every 4 hours
+    config.RECOMMENDATION_UPDATE_INTERVAL, // Every 6 hours
     async () => {
       logger.info("Starting scheduled recommendation job");
       const job = new RecommendationJob();
@@ -30,7 +31,7 @@ export const initializeJobs = (): void => {
     },
     null, // onComplete
     false, // start
-    process.env.TZ || "UTC"
+    config.TZ
   );
 
   // Schedule notification delivery - runs every 15 minutes
@@ -52,7 +53,7 @@ export const initializeJobs = (): void => {
     },
     null, // onComplete
     false, // start
-    process.env.TZ || "UTC"
+    config.TZ || "UTC"
   );
 
   // Schedule weekly digest - runs Sunday at 8:00 AM
@@ -74,7 +75,7 @@ export const initializeJobs = (): void => {
     },
     null, // onComplete
     false, // start
-    process.env.TZ || "UTC"
+    config.TZ
   );
 
   // Schedule notification cleanup - runs at 3:00 AM every Monday
@@ -96,7 +97,7 @@ export const initializeJobs = (): void => {
     },
     null, // onComplete
     false, // start
-    process.env.TZ || "UTC"
+    config.TZ
   );
 
   // Start all jobs
