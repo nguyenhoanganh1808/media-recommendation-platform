@@ -1,5 +1,5 @@
 // src/jobs/notification.job.ts
-import { PrismaClient, NotificationType } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { logger } from "../config/logger";
 import * as NotificationService from "../api/notifications/notifications.service";
 import { createTransport, Transporter } from "nodemailer";
