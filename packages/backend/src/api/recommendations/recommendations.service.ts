@@ -1,7 +1,7 @@
 // src/api/recommendations/recommendations.service.ts
-import { MediaType, Prisma } from '@prisma/client';
-import { prisma } from '../../config/database';
-import { AppError } from '../../middlewares/error.middleware';
+import { MediaType, Prisma } from "@prisma/client";
+import { prisma } from "../../config/database";
+import { AppError } from "../../middlewares/error.middleware";
 
 interface RecommendationOptions {
   userId: string;
@@ -81,7 +81,7 @@ export class RecommendationService {
       where: whereClause,
       take: limit,
       skip,
-      orderBy: [{ popularity: 'desc' }, { averageRating: 'desc' }],
+      orderBy: [{ popularity: "desc" }, { averageRating: "desc" }],
       include: {
         genres: {
           include: {
@@ -137,7 +137,7 @@ export class RecommendationService {
     });
 
     if (!sourceMedia) {
-      throw new AppError('Media not found', 404);
+      throw new AppError("Media not found", 404);
     }
 
     // Get user's ratings to exclude already rated media
@@ -163,7 +163,7 @@ export class RecommendationService {
         },
       },
       take: limit,
-      orderBy: [{ popularity: 'desc' }, { averageRating: 'desc' }],
+      orderBy: [{ popularity: "desc" }, { averageRating: "desc" }],
       include: {
         genres: {
           include: {
@@ -250,7 +250,7 @@ export class RecommendationService {
       where: whereClause,
       take: limit,
       skip,
-      orderBy: [{ popularity: 'desc' }, { averageRating: 'desc' }],
+      orderBy: [{ popularity: "desc" }, { averageRating: "desc" }],
       include: {
         genres: {
           include: {
@@ -347,7 +347,7 @@ export class RecommendationService {
     // Count matching genres
     const matchingGenres = sourceGenres.filter((g) => targetGenres.includes(g));
 
-    // Calculate Jaccard similarity (intersection over union)
+    // Calculate Jacquard similarity (intersection over union)
     const union = new Set([...sourceGenres, ...targetGenres]);
     return matchingGenres.length / union.size;
   }
