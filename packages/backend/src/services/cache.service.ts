@@ -1,230 +1,304 @@
-import { redisClient, getCache, setCache } from "../config/redis";
-import { config } from "../config/env";
+// src/services/cache.service.ts
+import { createClient, RedisClientType } from "redis";
+import { MediaType, Media } from "@prisma/client";
 import { logger } from "../config/logger";
-import { CronJob } from "cron";
+import { config } from "../config/env";
+
+interface CacheOptions {
+  ttl?: number; // Time to live in seconds
+}
 
 export class CacheService {
-  private jobs: Map<string, CronJob> = new Map();
+  private client: RedisClientType;
+  private readonly DEFAULT_TTL = 60 * 60 * 24; // 24 hours
+  private readonly RECOMMENDATION_PREFIX = "recommendations:";
+  private readonly USER_PREFERENCES_PREFIX = "user_preferences:";
+  private readonly MEDIA_DETAILS_PREFIX = "media_details:";
 
-  /**
-   * Initialize cache service
-   */
   constructor() {
-    // Initialize any default background jobs
-    this.initializeDefaultJobs();
-  }
-
-  /**
-   * Start a scheduled job to pre-warm cache entries
-   * @param pattern Key pattern to pre-warm
-   * @param fetchFunction Function to fetch data for pre-warming
-   * @param schedule Cron schedule expression
-   * @param ttl Optional TTL for cached entries
-   */
-  public startPreWarmJob(
-    pattern: string,
-    fetchFunction: () => Promise<Record<string, any>>,
-    schedule: string,
-    ttl: number = config.REDIS_TTL
-  ): void {
-    const jobId = `prewarm:${pattern}`;
-
-    const job = new CronJob(schedule, async () => {
-      try {
-        logger.info(`Running pre-warm job for pattern: ${pattern}`);
-        const data = await fetchFunction();
-
-        // Store each key-value pair in cache
-        const promises = Object.entries(data).map(([key, value]) => {
-          const cacheKey = `${pattern}:${key}`;
-          return setCache(cacheKey, JSON.stringify(value), ttl);
-        });
-
-        await Promise.all(promises);
-        logger.info(
-          `Pre-warmed ${promises.length} cache entries for ${pattern}`
-        );
-      } catch (error) {
-        logger.error(`Pre-warm job failed for ${pattern}: ${error}`);
-      }
-    });
-
-    this.jobs.set(jobId, job);
-    job.start();
-    logger.info(
-      `Started pre-warm job for ${pattern} with schedule: ${schedule}`
-    );
-  }
-
-  /**
-   * Start a cache invalidation job that runs on a schedule
-   * @param pattern Key pattern to invalidate
-   * @param schedule Cron schedule expression
-   */
-  public startInvalidationJob(pattern: string, schedule: string): void {
-    const jobId = `invalidate:${pattern}`;
-
-    const job = new CronJob(schedule, async () => {
-      try {
-        await this.invalidateByPattern(pattern);
-        logger.info(`Scheduled invalidation completed for pattern: ${pattern}`);
-      } catch (error) {
-        logger.error(`Scheduled invalidation failed for ${pattern}: ${error}`);
-      }
-    });
-
-    this.jobs.set(jobId, job);
-    job.start();
-    logger.info(
-      `Started invalidation job for ${pattern} with schedule: ${schedule}`
-    );
-  }
-
-  /**
-   * Start a cache analytics job to track cache metrics
-   * @param schedule Cron schedule expression
-   */
-  public startAnalyticsJob(schedule: string): void {
-    const jobId = "cache:analytics";
-
-    const job = new CronJob(schedule, async () => {
-      try {
-        // Get cache statistics
-        const info = await redisClient.info("memory");
-        const keyCount = await redisClient.dbSize();
-        const memoryUsage =
-          info.match(/used_memory_human:(.*)/)?.[1] || "unknown";
-
-        logger.info(
-          `Cache analytics - Keys: ${keyCount}, Memory: ${memoryUsage}`
-        );
-
-        // Get hit/miss ratio data if you're tracking it
-        // This would require implementing hit/miss counters in your middleware
-      } catch (error) {
-        logger.error(`Cache analytics job failed: ${error}`);
-      }
-    });
-
-    this.jobs.set(jobId, job);
-    job.start();
-    logger.info(`Started cache analytics job with schedule: ${schedule}`);
-  }
-
-  /**
-   * Invalidate cache entries by pattern
-   * @param pattern The pattern to match cache keys
-   * @returns Number of keys invalidated
-   */
-  public async invalidateByPattern(pattern: string): Promise<number> {
     try {
-      const keys = await redisClient.keys(`*${pattern}*`);
-      if (keys.length > 0) {
-        await redisClient.del(keys);
-        logger.info(
-          `Invalidated ${keys.length} cache entries matching pattern: ${pattern}`
-        );
-        return keys.length;
-      }
-      return 0;
-    } catch (error) {
-      logger.error(`Error invalidating cache: ${error}`);
-      throw error;
-    }
-  }
+      this.client = createClient({
+        url: config.REDIS_URL,
 
-  /**
-   * Set or refresh multiple cache entries in a single batch operation
-   * @param entries Array of key-value pairs to cache
-   * @param ttl Optional TTL (in seconds)
-   */
-  public async setBatch(
-    entries: Array<{ key: string; value: any }>,
-    ttl: number = config.REDIS_TTL
-  ): Promise<void> {
-    try {
-      const pipeline = redisClient.multi();
-
-      for (const entry of entries) {
-        const value = JSON.stringify(entry.value);
-        pipeline.set(entry.key, value, { EX: ttl });
-      }
-
-      await pipeline.exec();
-      logger.debug(`Batch cached ${entries.length} entries`);
-    } catch (error) {
-      logger.error(`Batch cache operation failed: ${error}`);
-      throw error;
-    }
-  }
-
-  /**
-   * Get multiple cache entries in a single operation
-   * @param keys Array of cache keys to retrieve
-   * @returns Object mapping keys to their cached values
-   */
-  public async getBatch(keys: string[]): Promise<Record<string, any>> {
-    try {
-      if (keys.length === 0) return {};
-
-      const values = await redisClient.mGet(keys);
-      const result: Record<string, any> = {};
-
-      keys.forEach((key, index) => {
-        if (values[index]) {
-          try {
-            result[key] = JSON.parse(values[index]);
-          } catch (e) {
-            result[key] = values[index];
-          }
-        }
+        socket: {
+          connectTimeout: 5000,
+          reconnectStrategy: (retries) => {
+            // Exponential backoff strategy
+            return Math.min(retries * 50, 5000);
+          },
+        },
       });
 
-      return result;
+      // Handle connection events
+      this.client.on("error", (err) => {
+        logger.error("Redis Client Error", err);
+      });
+
+      this.client.on("connect", () => {
+        logger.info("Connected to Redis");
+      });
+
+      // Connect to Redis
+      this.connect();
     } catch (error) {
-      logger.error(`Batch get operation failed: ${error}`);
+      logger.error("Failed to create Redis client", error);
       throw error;
     }
   }
 
   /**
-   * Initialize default background jobs
+   * Establish connection to Redis
    */
-  private initializeDefaultJobs(): void {
-    // Example: Daily cache cleanup job at midnight
-    this.startInvalidationJob("api:", "0 0 * * *");
-
-    // Example: Hourly analytics job
-    this.startAnalyticsJob("0 * * * *");
-  }
-
-  /**
-   * Stop all running background jobs
-   */
-  public stopAllJobs(): void {
-    this.jobs.forEach((job, id) => {
-      job.stop();
-      logger.info(`Stopped job: ${id}`);
-    });
-
-    this.jobs.clear();
-  }
-
-  /**
-   * Stop a specific background job by ID
-   * @param jobId The job ID to stop
-   */
-  public stopJob(jobId: string): boolean {
-    const job = this.jobs.get(jobId);
-    if (job) {
-      job.stop();
-      this.jobs.delete(jobId);
-      logger.info(`Stopped job: ${jobId}`);
-      return true;
+  private async connect(): Promise<void> {
+    if (!this.client.isOpen) {
+      await this.client.connect();
     }
-    return false;
+  }
+
+  /**
+   * Set recommendations for a user
+   * @param userId User ID
+   * @param mediaType Media type
+   * @param recommendations Array of recommended media
+   * @param options Cache options
+   */
+  public async setRecommendations(
+    userId: string,
+    mediaType: MediaType,
+    recommendations: Media[],
+    options: CacheOptions = {}
+  ): Promise<void> {
+    try {
+      await this.connect();
+
+      const key = `${this.RECOMMENDATION_PREFIX}${userId}:${mediaType}`;
+      const ttl = options.ttl || this.DEFAULT_TTL;
+
+      // Serialize recommendations (convert to JSON)
+      const serializedRecs = recommendations.map((rec) => JSON.stringify(rec));
+
+      // Store as a Redis list
+      await this.client.del(key); // Clear existing recommendations
+      await this.client.rPush(key, serializedRecs);
+      await this.client.expire(key, ttl);
+
+      logger.debug(
+        `Cached ${recommendations.length} recommendations for user ${userId}`
+      );
+    } catch (error) {
+      logger.error("Error setting recommendations in cache", error);
+    }
+  }
+
+  /**
+   * Get recommendations for a user
+   * @param userId User ID
+   * @param mediaType Media type
+   * @returns Array of recommended media or null
+   */
+  public async getRecommendations(
+    userId: string,
+    mediaType: MediaType
+  ): Promise<Media[] | null> {
+    try {
+      await this.connect();
+
+      const key = `${this.RECOMMENDATION_PREFIX}${userId}:${mediaType}`;
+
+      // Get all items from the list
+      const cachedRecs = await this.client.lRange(key, 0, -1);
+
+      if (!cachedRecs || cachedRecs.length === 0) {
+        return null;
+      }
+
+      // Deserialize recommendations
+      return cachedRecs.map((rec) => JSON.parse(rec));
+    } catch (error) {
+      logger.error("Error getting recommendations from cache", error);
+      return null;
+    }
+  }
+
+  /**
+   * Cache user preferences
+   * @param userId User ID
+   * @param preferences User preferences object
+   * @param options Cache options
+   */
+  public async setUserPreferences(
+    userId: string,
+    preferences: any,
+    options: CacheOptions = {}
+  ): Promise<void> {
+    try {
+      await this.connect();
+
+      const key = `${this.USER_PREFERENCES_PREFIX}${userId}`;
+      const ttl = options.ttl || this.DEFAULT_TTL;
+
+      await this.client.set(key, JSON.stringify(preferences), { EX: ttl });
+
+      logger.debug(`Cached preferences for user ${userId}`);
+    } catch (error) {
+      logger.error("Error setting user preferences in cache", error);
+    }
+  }
+
+  /**
+   * Get cached user preferences
+   * @param userId User ID
+   * @returns User preferences or null
+   */
+  public async getUserPreferences(userId: string): Promise<any | null> {
+    try {
+      await this.connect();
+
+      const key = `${this.USER_PREFERENCES_PREFIX}${userId}`;
+      const cachedPref = await this.client.get(key);
+
+      return cachedPref ? JSON.parse(cachedPref) : null;
+    } catch (error) {
+      logger.error("Error getting user preferences from cache", error);
+      return null;
+    }
+  }
+
+  /**
+   * Cache media details
+   * @param mediaId Media ID
+   * @param mediaDetails Media details object
+   * @param options Cache options
+   */
+  public async setMediaDetails(
+    mediaId: string,
+    mediaDetails: any,
+    options: CacheOptions = {}
+  ): Promise<void> {
+    try {
+      await this.connect();
+
+      const key = `${this.MEDIA_DETAILS_PREFIX}${mediaId}`;
+      const ttl = options.ttl || this.DEFAULT_TTL;
+
+      await this.client.set(key, JSON.stringify(mediaDetails), { EX: ttl });
+
+      logger.debug(`Cached details for media ${mediaId}`);
+    } catch (error) {
+      logger.error("Error setting media details in cache", error);
+    }
+  }
+
+  /**
+   * Get cached media details
+   * @param mediaId Media ID
+   * @returns Media details or null
+   */
+  public async getMediaDetails(mediaId: string): Promise<any | null> {
+    try {
+      await this.connect();
+
+      const key = `${this.MEDIA_DETAILS_PREFIX}${mediaId}`;
+      const cachedDetails = await this.client.get(key);
+
+      return cachedDetails ? JSON.parse(cachedDetails) : null;
+    } catch (error) {
+      logger.error("Error getting media details from cache", error);
+      return null;
+    }
+  }
+
+  /**
+   * Increment a counter in Redis
+   * @param key Unique key for the counter
+   * @param incrementBy Amount to increment
+   * @param options Cache options
+   */
+  public async incrementCounter(
+    key: string,
+    incrementBy: number = 1,
+    options: CacheOptions = {}
+  ): Promise<number> {
+    try {
+      await this.connect();
+
+      const ttl = options.ttl || this.DEFAULT_TTL;
+
+      // Increment and set expiry
+      const newValue = await this.client.incrBy(key, incrementBy);
+      await this.client.expire(key, ttl);
+
+      return newValue;
+    } catch (error) {
+      logger.error("Error incrementing counter", error);
+      return 0;
+    }
+  }
+
+  /**
+   * Delete a specific cache entry
+   * @param key Cache key to delete
+   */
+  public async deleteEntry(key: string): Promise<void> {
+    try {
+      await this.connect();
+      await this.client.del(key);
+
+      logger.debug(`Deleted cache entry: ${key}`);
+    } catch (error) {
+      logger.error("Error deleting cache entry", error);
+    }
+  }
+
+  /**
+   * Clear all cached recommendations for a user
+   * @param userId User ID
+   * @param mediaType Optional media type to clear
+   */
+  public async clearUserRecommendations(
+    userId: string,
+    mediaType?: MediaType
+  ): Promise<void> {
+    try {
+      await this.connect();
+
+      if (mediaType) {
+        const key = `${this.RECOMMENDATION_PREFIX}${userId}:${mediaType}`;
+        await this.client.del(key);
+      } else {
+        // Clear all media type recommendations for the user
+        const keys = await this.client.keys(
+          `${this.RECOMMENDATION_PREFIX}${userId}:*`
+        );
+        if (keys.length > 0) {
+          await this.client.del(keys);
+        }
+      }
+
+      logger.debug(`Cleared recommendations for user ${userId}`);
+    } catch (error) {
+      logger.error("Error clearing user recommendations", error);
+    }
+  }
+
+  /**
+   * Cleanup and close Redis connection
+   */
+  public async cleanup(): Promise<void> {
+    try {
+      if (this.client.isOpen) {
+        await this.client.quit();
+        logger.info("Redis client disconnected");
+      }
+    } catch (error) {
+      logger.error("Error during Redis client cleanup", error);
+    }
   }
 }
 
-// Create singleton instance
-export const cacheService = new CacheService();
+// Utility function to get Redis client (can be used elsewhere in the application)
+export const getRedisClient = (): RedisClientType => {
+  return createClient({
+    url: config.REDIS_URL,
+  });
+};
