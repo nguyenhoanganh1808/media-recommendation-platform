@@ -42,33 +42,8 @@ export const loginUser = async (
 ): Promise<AuthResponse> => {
   try {
     // In a real app, this would be:
-    // const response = await api.post("/auth/login", credentials);
-    // return response.data;
-
-    // Simulated API response for demo
-    return new Promise((resolve, reject) => {
-      setTimeout(() => {
-        // Simulate validation
-        if (
-          credentials.email === "demo@example.com" &&
-          credentials.password === "password"
-        ) {
-          resolve({
-            user: {
-              id: "user-123",
-              name: "Demo User",
-              email: "demo@example.com",
-              username: "demouser",
-              createdAt: new Date().toISOString(),
-            },
-            accessToken: "simulated-access-token",
-            refreshToken: "simulated-refresh-token",
-          });
-        } else {
-          reject(new Error("Invalid email or password"));
-        }
-      }, 1000); // Simulate network delay
-    });
+    const response = await api.post("/auth/login", credentials);
+    return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Login failed");
