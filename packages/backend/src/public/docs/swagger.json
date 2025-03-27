@@ -373,20 +373,34 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "format": "email",
+                    "example": "user@example.com"
                   },
                   "username": {
                     "type": "string",
-                    "minLength": 3
+                    "minLength": 3,
+                    "example": "johndoe",
+                    "maxLength": 30
                   },
                   "password": {
                     "type": "string",
-                    "minLength": 8
+                    "minLength": 8,
+                    "format": "password",
+                    "example": "StrongPass123"
+                  },
+                  "firstName": {
+                    "type": "string",
+                    "example": "John"
+                  },
+                  "lastName": {
+                    "type": "string",
+                    "example": "Doe"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "201": {
@@ -403,7 +417,12 @@
                       "type": "string"
                     },
                     "refreshToken": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "JWT refresh token"
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "description": "JWT access token"
                     }
                   }
                 }
@@ -412,8 +431,29 @@
           },
           "400": {
             "$ref": "#/components/responses/ValidationError"
+          },
+          "409": {
+            "description": "Email or username already in use",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Email already in use"
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Create a new user account with email, username, and password"
       }
     },
     "/api/auth/login": {
@@ -434,15 +474,19 @@
                 "properties": {
                   "email": {
                     "type": "string",
-                    "format": "email"
+                    "format": "email",
+                    "example": "user@example.com"
                   },
                   "password": {
-                    "type": "string"
+                    "type": "string",
+                    "format": "password",
+                    "example": "StrongPass123"
                   }
                 }
               }
             }
-          }
+          },
+          "required": true
         },
         "responses": {
           "200": {
@@ -459,7 +503,12 @@
                       "type": "string"
                     },
                     "refreshToken": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "JWT refresh token"
+                    },
+                    "accessToken": {
+                      "type": "string",
+                      "description": "JWT access token"
                     }
                   }
                 }
@@ -468,8 +517,29 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          },
+          "403": {
+            "description": "Account deactivated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "error"
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Account is deactivated. Please contact support."
+                    }
+                  }
+                }
+              }
+            }
           }
-        }
+        },
+        "description": "Authenticate a user and return access and refresh tokens"
       }
     },
     "/api/auth/refresh": {
@@ -538,7 +608,7 @@
                   "properties": {
                     "message": {
                       "type": "string",
-                      "example": "Logged out successfully"
+                      "example": "Logout successful"
                     }
                   }
                 }
@@ -547,6 +617,26 @@
           },
           "401": {
             "$ref": "#/components/responses/UnauthorizedError"
+          }
+        },
+        "description": "Invalidate the current refresh token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "refreshToken"
+                ],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "description": "Current refresh token to be invalidated"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -738,6 +828,196 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh-token": {
+      "post": {
+        "summary": "Refresh access token",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Generate a new access token using a valid refresh token",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "refreshToken"
+                ],
+                "properties": {
+                  "refreshToken": {
+                    "type": "string",
+                    "description": "Valid refresh token"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "accessToken": {
+                      "type": "string",
+                      "description": "New JWT access token"
+                    },
+                    "refreshToken": {
+                      "type": "string",
+                      "description": "New JWT refresh token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/api/auth/profile": {
+      "get": {
+        "summary": "Get current user profile",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Retrieve the profile information of the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid"
+                    },
+                    "email": {
+                      "type": "string",
+                      "format": "email"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "firstName": {
+                      "type": "string"
+                    },
+                    "lastName": {
+                      "type": "string"
+                    },
+                    "bio": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "avatar": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "USER",
+                        "MODERATOR",
+                        "ADMIN"
+                      ]
+                    },
+                    "createdAt": {
+                      "type": "string",
+                      "format": "date-time"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
+          }
+        }
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "summary": "Change user password",
+        "tags": [
+          "Auth"
+        ],
+        "description": "Change the password for the authenticated user",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "currentPassword",
+                  "newPassword"
+                ],
+                "properties": {
+                  "currentPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Current user password"
+                  },
+                  "newPassword": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "New password (must be at least 8 characters with upper, lower, and number)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Password changed successfully"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationError"
+          },
+          "401": {
+            "$ref": "#/components/responses/UnauthorizedError"
           }
         }
       }
