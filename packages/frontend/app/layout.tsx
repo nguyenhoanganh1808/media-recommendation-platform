@@ -1,24 +1,32 @@
-import type React from 'react';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './globals.css';
+import { Inter } from "next/font/google";
+import { Providers } from "./providers";
+import { Toaster } from "@/components/ui/toaster";
+import Navbar from "@/components/navbar";
+import "./globals.css";
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
-  title: 'MediaVerse - Rate and Review Movies, Games, and Manga',
-  description:
-    'Discover, rate, and review your favorite movies, games, and manga. Get personalized recommendations based on your taste.',
+export const metadata = {
+  title: "Media Recommendation Platform",
+  description: "Track and discover movies, games, and manga",
 };
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={inter.className}>
+        <Providers>
+          <div className="min-h-screen flex flex-col">
+            <Navbar />
+            <main className="flex-1">{children}</main>
+            <Toaster />
+          </div>
+        </Providers>
+      </body>
     </html>
   );
 }
