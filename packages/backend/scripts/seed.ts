@@ -163,9 +163,7 @@ async function seedPlatforms() {
     { name: "Android" },
   ];
 
-  const platforms: any[] = [];
-
-  await Promise.all(
+  const platforms = await Promise.all(
     platformData.map((platform) =>
       prisma.platform.create({
         data: platform,

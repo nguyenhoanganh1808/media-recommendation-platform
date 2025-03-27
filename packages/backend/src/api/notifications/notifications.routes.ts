@@ -1,15 +1,15 @@
-import { Router } from 'express';
-import * as notificationController from './notifications.controller';
-import { authenticate } from '../../middlewares/auth.middleware';
-import { validate } from '../../middlewares/validation.middleware';
-import { userCacheMiddleware } from '../../middlewares/cache.middleware';
-import { rateLimiter } from '../../middlewares/rateLimiter.middleware';
+import { Router } from "express";
+import * as notificationController from "./notifications.controller";
+import { authenticate } from "../../middlewares/auth.middleware";
+import { validate } from "../../middlewares/validation.middleware";
+import { userCacheMiddleware } from "../../middlewares/cache.middleware";
+import { rateLimiter } from "../../middlewares/rateLimiter.middleware";
 import {
   deleteNotificationValidation,
   getNotificationsValidation,
   markAsReadValidation,
   updateNotificationSettingsValidation,
-} from './notifications.validation';
+} from "./notifications.validation";
 
 const router = Router();
 
@@ -22,7 +22,7 @@ router.use(rateLimiter);
  * @access  Private
  */
 router.get(
-  '/',
+  "/",
   validate(getNotificationsValidation),
   userCacheMiddleware({ ttl: 300 }), // Cache for 5 minutes
   notificationController.getUserNotifications
@@ -34,7 +34,7 @@ router.get(
  * @access  Private
  */
 router.patch(
-  '/:id/read',
+  "/:id/read",
   validate(markAsReadValidation),
   notificationController.markAsRead
 );
@@ -44,7 +44,14 @@ router.patch(
  * @desc    Mark all notifications as read
  * @access  Private
  */
-router.patch('/read-all', notificationController.markAllAsRead);
+router.patch("/read-all", notificationController.markAllAsRead);
+
+/**
+ * @route   DELETE /api/notifications/read
+ * @desc    Delete all read notifications
+ * @access  Private
+ */
+router.delete("/read", notificationController.deleteAllReadNotifications);
 
 /**
  * @route   DELETE /api/notifications/:id
@@ -52,24 +59,17 @@ router.patch('/read-all', notificationController.markAllAsRead);
  * @access  Private
  */
 router.delete(
-  '/:id',
+  "/:id",
   validate(deleteNotificationValidation),
   notificationController.deleteNotification
 );
-
-/**
- * @route   DELETE /api/notifications/read
- * @desc    Delete all read notifications
- * @access  Private
- */
-router.delete('/read', notificationController.deleteAllReadNotifications);
 
 /**
  * @route   GET /api/notifications/settings
  * @desc    Get notification settings
  * @access  Private
  */
-router.get('/settings', notificationController.getNotificationSettings);
+router.get("/settings", notificationController.getNotificationSettings);
 
 /**
  * @route   PUT /api/notifications/settings
@@ -77,7 +77,7 @@ router.get('/settings', notificationController.getNotificationSettings);
  * @access  Private
  */
 router.put(
-  '/settings',
+  "/settings",
   validate(updateNotificationSettingsValidation),
   notificationController.updateNotificationSettings
 );
