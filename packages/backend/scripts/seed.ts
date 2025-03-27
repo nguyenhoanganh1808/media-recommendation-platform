@@ -202,7 +202,7 @@ async function seedUsers() {
     },
     {
       email: "user@example.com",
-      username: "moderator",
+      username: "user",
       password: await hashPassword("userPassword123"),
       firstName: "Zodd",
       lastName: "...",
