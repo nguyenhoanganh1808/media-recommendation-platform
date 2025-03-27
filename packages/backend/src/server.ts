@@ -14,7 +14,7 @@ const server = app.listen(PORT, async () => {
   await connectRedis();
   logger.info(`🚀 Server started on port ${PORT} in ${config.NODE_ENV} mode`);
   logger.info(
-    `🔗 API Documentation available at http://localhost:${PORT}/api-docs`
+    `🔗 API Documentation available at http://localhost:${PORT}/docs`
   );
 });
 
