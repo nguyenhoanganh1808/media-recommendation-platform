@@ -221,7 +221,7 @@ export class NotificationJob {
    */
   private async processInAppNotification(notification: any): Promise<void> {
     // In a real system, this might involve websockets or push notifications
-    // For this implementation, we'll just ensure the notification is properly stored
+    // Just ensure the notification is properly stored
     logger.debug(
       `Processing in-app notification ${notification.id} for user ${notification.user.username}`
     );

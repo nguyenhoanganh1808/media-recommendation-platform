@@ -5,21 +5,22 @@ import {
   Role,
   NotificationType,
   $Enums,
-} from '@prisma/client';
-import { hashPassword } from '../src/utils/password';
-import axios from 'axios';
+} from "@prisma/client";
+import { hashPassword } from "../src/utils/password";
+import axios from "axios";
+import { config } from "../src/config/env";
 
 const prisma = new PrismaClient();
 
 // Configuration for external APIs (you'll need to provide your own API keys)
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
-const IGDB_CLIENT_ID = process.env.IGDB_CLIENT_ID;
-const IGDB_CLIENT_SECRET = process.env.IGDB_CLIENT_SECRET;
-const MANGA_API_URL = 'https://api.jikan.moe/v4';
+const TMDB_API_KEY = config.TMDB_API_KEY;
+const IGDB_CLIENT_ID = config.IGDB_CLIENT_ID;
+const IGDB_CLIENT_SECRET = config.IGDB_CLIENT_SECRET;
+const MANGA_API_URL = "https://api.jikan.moe/v4";
 
 // Main seeding function
 async function main() {
-  console.log('Start seeding...');
+  console.log("Start seeding...");
 
   // Clear existing data
   await clearDatabase();
@@ -45,100 +46,100 @@ async function main() {
   // Update calculated fields
   await updateMediaRatings(allMedia);
 
-  console.log('Seeding finished successfully!');
+  console.log("Seeding finished successfully!");
 }
 
 // Clear the database before seeding
 async function clearDatabase() {
   const tablesToClear = [
-    'RefreshToken',
-    'Notification',
-    'Follow',
-    'MediaListItem',
-    'MediaList',
-    'UserPreference',
-    'MediaReview',
-    'MediaRating',
-    'GenreOnMedia',
-    'ExternalMediaId',
-    'Media',
-    'Platform',
-    'Genre',
-    'User',
+    "refresh_tokens",
+    "notifications",
+    "follows",
+    "media_list_items",
+    "media_lists",
+    "user_preferences",
+    "media_reviews",
+    "media_ratings",
+    "genre_on_media",
+    "external_media_ids",
+    "media",
+    "platforms",
+    "genres",
+    "users",
   ];
 
   for (const table of tablesToClear) {
     await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
   }
 
-  console.log('Database cleared successfully');
+  console.log("Database cleared successfully");
 }
 
 // Seed genres for all media types
 async function seedGenres() {
   const genreData = [
     // Movie genres
-    { name: 'Action', description: 'Exciting action sequences' },
+    { name: "Action", description: "Exciting action sequences" },
     {
-      name: 'Adventure',
+      name: "Adventure",
       description:
-        'Exciting stories, often with new experiences or exotic locales',
+        "Exciting stories, often with new experiences or exotic locales",
     },
     {
-      name: 'Animation',
+      name: "Animation",
       description:
-        'Films made with animated illustrations, clay, or computer graphics',
+        "Films made with animated illustrations, clay, or computer graphics",
     },
-    { name: 'Comedy', description: 'Light-hearted and humorous content' },
+    { name: "Comedy", description: "Light-hearted and humorous content" },
     {
-      name: 'Drama',
-      description: 'Character development and emotional themes',
+      name: "Drama",
+      description: "Character development and emotional themes",
     },
-    { name: 'Fantasy', description: 'Imaginative and magical elements' },
+    { name: "Fantasy", description: "Imaginative and magical elements" },
     {
-      name: 'Horror',
-      description: 'Intended to frighten and scare the audience',
+      name: "Horror",
+      description: "Intended to frighten and scare the audience",
     },
-    { name: 'Romance', description: 'Focus on romantic relationships' },
+    { name: "Romance", description: "Focus on romantic relationships" },
     {
-      name: 'Sci-Fi',
-      description: 'Scientific and technological themes and advancements',
+      name: "Sci-Fi",
+      description: "Scientific and technological themes and advancements",
     },
-    { name: 'Thriller', description: 'Suspenseful and exciting content' },
+    { name: "Thriller", description: "Suspenseful and exciting content" },
 
     // Game genres
-    { name: 'FPS', description: 'First-person shooter games' },
+    { name: "FPS", description: "First-person shooter games" },
     {
-      name: 'RPG',
-      description: 'Role-playing games with character development',
+      name: "RPG",
+      description: "Role-playing games with character development",
     },
-    { name: 'Strategy', description: 'Games that require careful planning' },
+    { name: "Strategy", description: "Games that require careful planning" },
     {
-      name: 'Simulation',
-      description: 'Games that simulate real-world activities',
+      name: "Simulation",
+      description: "Games that simulate real-world activities",
     },
-    { name: 'Sports', description: 'Games based on sports' },
-    { name: 'Puzzle', description: 'Games that require problem-solving' },
+    { name: "Sports", description: "Games based on sports" },
+    { name: "Puzzle", description: "Games that require problem-solving" },
     {
-      name: 'Open World',
-      description: 'Games with large explorable environments',
+      name: "Open World",
+      description: "Games with large explore environments",
     },
     {
-      name: 'MMORPG',
-      description: 'Massively multiplayer online role-playing games',
+      name: "MMORPG",
+      description: "Massively multiplayer online role-playing games",
     },
 
     // Manga genres
-    { name: 'Shonen', description: 'Targeted towards teenage boys' },
-    { name: 'Shojo', description: 'Targeted towards teenage girls' },
-    { name: 'Seinen', description: 'Targeted towards adult men' },
-    { name: 'Josei', description: 'Targeted towards adult women' },
-    { name: 'Isekai', description: 'Character transported to another world' },
+    { name: "Shonen", description: "Targeted towards teenage boys" },
+    { name: "Shojo", description: "Targeted towards teenage girls" },
+    { name: "Seinen", description: "Targeted towards adult men" },
+    { name: "Josei", description: "Targeted towards adult women" },
+    { name: "Isekai", description: "Character transported to another world" },
     {
-      name: 'Mecha',
-      description: 'Featuring robots and mechanical technology',
+      name: "Mecha",
+      description: "Featuring robots and mechanical technology",
     },
-    { name: 'Slice of Life', description: 'Portraying everyday experiences' },
+    { name: "Slice of Life", description: "Portraying everyday experiences" },
   ];
 
   const genres = await Promise.all(
@@ -152,14 +153,14 @@ async function seedGenres() {
 // Seed gaming platforms
 async function seedPlatforms() {
   const platformData = [
-    { name: 'PC' },
-    { name: 'PlayStation 5' },
-    { name: 'PlayStation 4' },
-    { name: 'Xbox Series X/S' },
-    { name: 'Xbox One' },
-    { name: 'Nintendo Switch' },
-    { name: 'iOS' },
-    { name: 'Android' },
+    { name: "PC" },
+    { name: "PlayStation 5" },
+    { name: "PlayStation 4" },
+    { name: "Xbox Series X/S" },
+    { name: "Xbox One" },
+    { name: "Nintendo Switch" },
+    { name: "iOS" },
+    { name: "Android" },
   ];
 
   const platforms: any[] = [];
@@ -180,32 +181,32 @@ async function seedPlatforms() {
 async function seedUsers() {
   const userData = [
     {
-      email: 'admin@example.com',
-      username: 'admin',
-      password: await hashPassword('adminPassword123'),
-      firstName: 'Admin',
-      lastName: 'User',
-      bio: 'System administrator',
+      email: "admin@example.com",
+      username: "admin",
+      password: await hashPassword("adminPassword123"),
+      firstName: "Admin",
+      lastName: "User",
+      bio: "System administrator",
       role: Role.ADMIN,
       isActive: true,
     },
     {
-      email: 'moderator@example.com',
-      username: 'moderator',
-      password: await hashPassword('moderatorPassword123'),
-      firstName: 'Mod',
-      lastName: 'User',
-      bio: 'Content moderator',
+      email: "moderator@example.com",
+      username: "moderator",
+      password: await hashPassword("moderatorPassword123"),
+      firstName: "Mod",
+      lastName: "User",
+      bio: "Content moderator",
       role: Role.MODERATOR,
       isActive: true,
     },
     {
-      email: 'user@example.com',
-      username: 'moderator',
-      password: await hashPassword('userPassword123'),
-      firstName: 'Zodd',
-      lastName: '...',
-      bio: 'Rengular user',
+      email: "user@example.com",
+      username: "moderator",
+      password: await hashPassword("userPassword123"),
+      firstName: "Zodd",
+      lastName: "...",
+      bio: "Rengular user",
       role: Role.USER,
       isActive: true,
     },
@@ -216,7 +217,7 @@ async function seedUsers() {
     userData.push({
       email: `user${i}@example.com`,
       username: `user${i}`,
-      password: await hashPassword('userPassword123'),
+      password: await hashPassword("userPassword123"),
       firstName: `User${i}`,
       lastName: `Sample`,
       bio: `Regular user account ${i}`,
@@ -240,7 +241,7 @@ async function seedUsers() {
 // Fetch and create movie data from TMDB API
 async function fetchAndCreateMovies() {
   if (!TMDB_API_KEY) {
-    console.warn('TMDB_API_KEY not found, using fallback movie data');
+    console.warn("TMDB_API_KEY not found, using fallback movie data");
     return createFallbackMovies();
   }
 
@@ -265,7 +266,7 @@ async function fetchAndCreateMovies() {
             `https://api.themoviedb.org/3/movie/${movie.id}/credits?api_key=${TMDB_API_KEY}`
           );
           const directors = creditsResponse.data.crew.filter(
-            (person: any) => person.job === 'Director'
+            (person: any) => person.job === "Director"
           );
           const director = directors.length > 0 ? directors[0].name : null;
 
@@ -291,7 +292,7 @@ async function fetchAndCreateMovies() {
               director: director,
               externalIds: {
                 create: {
-                  source: 'TMDB',
+                  source: "TMDB",
                   externalId: String(movieDetails.id),
                 },
               },
@@ -320,7 +321,7 @@ async function fetchAndCreateMovies() {
     console.log(`Created ${movies.length} movies from TMDB`);
     return movies;
   } catch (error) {
-    console.error('Error fetching movies from TMDB:', error);
+    console.error("Error fetching movies from TMDB:", error);
     return createFallbackMovies();
   }
 }
@@ -329,49 +330,49 @@ async function fetchAndCreateMovies() {
 async function createFallbackMovies() {
   const movieData = [
     {
-      title: 'The Shawshank Redemption',
+      title: "The Shawshank Redemption",
       description:
-        'Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.',
-      releaseDate: new Date('1994-09-23'),
-      director: 'Frank Darabont',
+        "Two imprisoned men bond over a number of years, finding solace and eventual redemption through acts of common decency.",
+      releaseDate: new Date("1994-09-23"),
+      director: "Frank Darabont",
       duration: 142,
-      genres: ['Drama'],
+      genres: ["Drama"],
     },
     {
-      title: 'The Godfather',
+      title: "The Godfather",
       description:
-        'The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.',
-      releaseDate: new Date('1972-03-24'),
-      director: 'Francis Ford Coppola',
+        "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
+      releaseDate: new Date("1972-03-24"),
+      director: "Francis Ford Coppola",
       duration: 175,
-      genres: ['Crime', 'Drama'],
+      genres: ["Crime", "Drama"],
     },
     {
-      title: 'Inception',
+      title: "Inception",
       description:
-        'A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.',
-      releaseDate: new Date('2010-07-16'),
-      director: 'Christopher Nolan',
+        "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+      releaseDate: new Date("2010-07-16"),
+      director: "Christopher Nolan",
       duration: 148,
-      genres: ['Action', 'Sci-Fi', 'Thriller'],
+      genres: ["Action", "Sci-Fi", "Thriller"],
     },
     {
-      title: 'Pulp Fiction',
+      title: "Pulp Fiction",
       description:
-        'The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.',
-      releaseDate: new Date('1994-10-14'),
-      director: 'Quentin Tarantino',
+        "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+      releaseDate: new Date("1994-10-14"),
+      director: "Quentin Tarantino",
       duration: 154,
-      genres: ['Crime', 'Drama'],
+      genres: ["Crime", "Drama"],
     },
     {
-      title: 'The Dark Knight',
+      title: "The Dark Knight",
       description:
-        'When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.',
-      releaseDate: new Date('2008-07-18'),
-      director: 'Christopher Nolan',
+        "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
+      releaseDate: new Date("2008-07-18"),
+      director: "Christopher Nolan",
       duration: 152,
-      genres: ['Action', 'Crime', 'Drama'],
+      genres: ["Action", "Crime", "Drama"],
     },
   ];
 
@@ -408,7 +409,7 @@ async function createFallbackMovies() {
 // Fetch and create game data from IGDB API
 async function fetchAndCreateGames() {
   if (!IGDB_CLIENT_ID || !IGDB_CLIENT_SECRET) {
-    console.warn('IGDB API credentials not found, using fallback game data');
+    console.warn("IGDB API credentials not found, using fallback game data");
     return createFallbackGames();
   }
 
@@ -421,11 +422,11 @@ async function fetchAndCreateGames() {
 
     // Query IGDB for popular games
     const response = await axios.post(
-      'https://api.igdb.com/v4/games',
-      'fields name,summary,first_release_date,rating,rating_count,cover.url,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,platforms.name,genres.name,status; limit 10; sort rating desc; where rating != null & platforms != null & cover != null;',
+      "https://api.igdb.com/v4/games",
+      "fields name,summary,first_release_date,rating,rating_count,cover.url,involved_companies.company.name,involved_companies.developer,involved_companies.publisher,platforms.name,genres.name,status; limit 10; sort rating desc; where rating != null & platforms != null & cover != null;",
       {
         headers: {
-          'Client-ID': IGDB_CLIENT_ID,
+          "Client-ID": IGDB_CLIENT_ID,
           Authorization: `Bearer ${accessToken}`,
         },
       }
@@ -463,7 +464,7 @@ async function fetchAndCreateGames() {
               mediaType: MediaType.GAME,
               status: gameStatus,
               coverImage: game.cover?.url
-                ? game.cover.url.replace('t_thumb', 't_cover_big')
+                ? game.cover.url.replace("t_thumb", "t_cover_big")
                 : null,
               popularity: game.rating_count || 0,
               averageRating: game.rating ? game.rating / 10 : 5, // IGDB uses 0-100 scale
@@ -472,7 +473,7 @@ async function fetchAndCreateGames() {
               publisher: publisher,
               externalIds: {
                 create: {
-                  source: 'IGDB',
+                  source: "IGDB",
                   externalId: String(game.id),
                 },
               },
@@ -508,7 +509,7 @@ async function fetchAndCreateGames() {
     console.log(`Created ${games.length} games from IGDB`);
     return games;
   } catch (error) {
-    console.error('Error fetching games from IGDB:', error);
+    console.error("Error fetching games from IGDB:", error);
     return createFallbackGames();
   }
 }
@@ -517,66 +518,66 @@ async function fetchAndCreateGames() {
 async function createFallbackGames() {
   const gameData = [
     {
-      title: 'The Legend of Zelda: Breath of the Wild',
+      title: "The Legend of Zelda: Breath of the Wild",
       description:
-        'An action-adventure game set in an open world where players control Link who awakens from a hundred-year slumber to defeat Calamity Ganon.',
-      releaseDate: new Date('2017-03-03'),
-      developer: 'Nintendo',
-      publisher: 'Nintendo',
-      genres: ['Action', 'Adventure', 'RPG', 'Open World'],
-      platforms: ['Nintendo Switch'],
+        "An action-adventure game set in an open world where players control Link who awakens from a hundred-year slumber to defeat Calamity Ganon.",
+      releaseDate: new Date("2017-03-03"),
+      developer: "Nintendo",
+      publisher: "Nintendo",
+      genres: ["Action", "Adventure", "RPG", "Open World"],
+      platforms: ["Nintendo Switch"],
     },
     {
-      title: 'Red Dead Redemption 2',
+      title: "Red Dead Redemption 2",
       description:
-        'A western-themed action-adventure game set in an open world environment featuring a fictionalized take on the Western, Midwestern, and Southern United States in 1899.',
-      releaseDate: new Date('2018-10-26'),
-      developer: 'Rockstar Games',
-      publisher: 'Rockstar Games',
-      genres: ['Action', 'Adventure', 'Open World'],
-      platforms: ['PlayStation 4', 'Xbox One', 'PC'],
+        "A western-themed action-adventure game set in an open world environment featuring a fictionalized take on the Western, Midwestern, and Southern United States in 1899.",
+      releaseDate: new Date("2018-10-26"),
+      developer: "Rockstar Games",
+      publisher: "Rockstar Games",
+      genres: ["Action", "Adventure", "Open World"],
+      platforms: ["PlayStation 4", "Xbox One", "PC"],
     },
     {
-      title: 'The Witcher 3: Wild Hunt',
+      title: "The Witcher 3: Wild Hunt",
       description:
-        'An action role-playing game where you play as Geralt of Rivia, a monster hunter tasked with finding a child of prophecy in a vast open world.',
-      releaseDate: new Date('2015-05-19'),
-      developer: 'CD Projekt Red',
-      publisher: 'CD Projekt',
-      genres: ['RPG', 'Action', 'Open World'],
-      platforms: ['PC', 'PlayStation 4', 'Xbox One', 'Nintendo Switch'],
+        "An action role-playing game where you play as Geralt of Rivia, a monster hunter tasked with finding a child of prophecy in a vast open world.",
+      releaseDate: new Date("2015-05-19"),
+      developer: "CD Projekt Red",
+      publisher: "CD Projekt",
+      genres: ["RPG", "Action", "Open World"],
+      platforms: ["PC", "PlayStation 4", "Xbox One", "Nintendo Switch"],
     },
     {
-      title: 'Minecraft',
+      title: "Minecraft",
       description:
-        'A sandbox video game that allows players to build and explore virtual worlds made up of blocks.',
-      releaseDate: new Date('2011-11-18'),
-      developer: 'Mojang',
-      publisher: 'Mojang Studios',
-      genres: ['Sandbox', 'Simulation'],
+        "A sandbox video game that allows players to build and explore virtual worlds made up of blocks.",
+      releaseDate: new Date("2011-11-18"),
+      developer: "Mojang",
+      publisher: "Mojang Studios",
+      genres: ["Sandbox", "Simulation"],
       platforms: [
-        'PC',
-        'PlayStation 4',
-        'Xbox One',
-        'Nintendo Switch',
-        'iOS',
-        'Android',
+        "PC",
+        "PlayStation 4",
+        "Xbox One",
+        "Nintendo Switch",
+        "iOS",
+        "Android",
       ],
     },
     {
-      title: 'Elden Ring',
+      title: "Elden Ring",
       description:
-        'An action role-playing game developed by FromSoftware and written by George R. R. Martin. Set in the realm of the Lands Between.',
-      releaseDate: new Date('2022-02-25'),
-      developer: 'FromSoftware',
-      publisher: 'Bandai Namco Entertainment',
-      genres: ['Action', 'RPG', 'Open World'],
+        "An action role-playing game developed by FromSoftware and written by George R. R. Martin. Set in the realm of the Lands Between.",
+      releaseDate: new Date("2022-02-25"),
+      developer: "FromSoftware",
+      publisher: "Bandai Namco Entertainment",
+      genres: ["Action", "RPG", "Open World"],
       platforms: [
-        'PC',
-        'PlayStation 5',
-        'PlayStation 4',
-        'Xbox Series X/S',
-        'Xbox One',
+        "PC",
+        "PlayStation 5",
+        "PlayStation 4",
+        "Xbox Series X/S",
+        "Xbox One",
       ],
     },
   ];
@@ -656,7 +657,7 @@ async function fetchAndCreateManga() {
                 : null,
               mediaType: MediaType.MANGA,
               status:
-                manga.status === 'Finished' || manga.status === 'Publishing'
+                manga.status === "Finished" || manga.status === "Publishing"
                   ? MediaStatus.RELEASED
                   : MediaStatus.UPCOMING,
               coverImage: manga.images?.jpg?.large_image_url || null,
@@ -666,16 +667,16 @@ async function fetchAndCreateManga() {
               author:
                 manga.authors
                   ?.map((author: { name: any }) => author.name)
-                  .join(', ') || null,
+                  .join(", ") || null,
               artist:
                 manga.authors
                   ?.map((author: { name: any }) => author.name)
-                  .join(', ') || null,
+                  .join(", ") || null,
               volumeCount: manga.volumes || 0,
-              isCompleted: manga.status === 'Finished',
+              isCompleted: manga.status === "Finished",
               externalIds: {
                 create: {
-                  source: 'MyAnimeList',
+                  source: "MyAnimeList",
                   externalId: String(manga.mal_id),
                 },
               },
@@ -702,7 +703,7 @@ async function fetchAndCreateManga() {
     console.log(`Created ${mangas.length} manga from Jikan API`);
     return mangas;
   } catch (error) {
-    console.error('Error fetching manga from Jikan API:', error);
+    console.error("Error fetching manga from Jikan API:", error);
     return createFallbackManga();
   }
 }
@@ -711,69 +712,69 @@ async function fetchAndCreateManga() {
 async function createFallbackManga() {
   const mangaData = [
     {
-      title: 'One Piece',
-      originalTitle: 'ワンピース',
+      title: "One Piece",
+      originalTitle: "ワンピース",
       description:
-        'Follows the adventures of Monkey D. Luffy and his pirate crew in order to find the greatest treasure ever left by the legendary Pirate, Gold Roger.',
-      releaseDate: new Date('1997-07-22'),
-      author: 'Eiichiro Oda',
-      artist: 'Eiichiro Oda',
+        "Follows the adventures of Monkey D. Luffy and his pirate crew in order to find the greatest treasure ever left by the legendary Pirate, Gold Roger.",
+      releaseDate: new Date("1997-07-22"),
+      author: "Eiichiro Oda",
+      artist: "Eiichiro Oda",
       volumeCount: 100,
       isCompleted: false,
-      genres: ['Action', 'Adventure', 'Fantasy', 'Shonen'],
+      genres: ["Action", "Adventure", "Fantasy", "Shonen"],
     },
     {
-      title: 'Berserk',
-      originalTitle: 'ベルセルク',
+      title: "Berserk",
+      originalTitle: "ベルセルク",
       description:
         "Guts is a skilled swordsman who joins forces with a mercenary group named 'Band of the Hawk', led by the charismatic Griffith.",
-      releaseDate: new Date('1989-08-25'),
-      author: 'Kentaro Miura',
-      artist: 'Kentaro Miura',
+      releaseDate: new Date("1989-08-25"),
+      author: "Kentaro Miura",
+      artist: "Kentaro Miura",
       volumeCount: 41,
       isCompleted: false,
-      genres: ['Action', 'Adventure', 'Drama', 'Fantasy', 'Horror', 'Seinen'],
+      genres: ["Action", "Adventure", "Drama", "Fantasy", "Horror", "Seinen"],
     },
     {
-      title: 'Attack on Titan',
-      originalTitle: '進撃の巨人',
+      title: "Attack on Titan",
+      originalTitle: "進撃の巨人",
       description:
-        'In a world where humanity lives inside cities surrounded by enormous walls due to the Titans, gigantic humanoid creatures who devour humans seemingly without reason.',
-      releaseDate: new Date('2009-09-09'),
-      author: 'Hajime Isayama',
-      artist: 'Hajime Isayama',
+        "In a world where humanity lives inside cities surrounded by enormous walls due to the Titans, gigantic humanoid creatures who devour humans seemingly without reason.",
+      releaseDate: new Date("2009-09-09"),
+      author: "Hajime Isayama",
+      artist: "Hajime Isayama",
       volumeCount: 34,
       isCompleted: true,
-      genres: ['Action', 'Drama', 'Fantasy', 'Horror', 'Shonen'],
+      genres: ["Action", "Drama", "Fantasy", "Horror", "Shonen"],
     },
     {
-      title: 'Fullmetal Alchemist',
-      originalTitle: '鋼の錬金術師',
+      title: "Fullmetal Alchemist",
+      originalTitle: "鋼の錬金術師",
       description:
         "Two brothers search for a Philosopher's Stone after an attempt to revive their deceased mother goes wrong and leaves them in damaged physical forms.",
-      releaseDate: new Date('2001-07-12'),
-      author: 'Hiromu Arakawa',
-      artist: 'Hiromu Arakawa',
+      releaseDate: new Date("2001-07-12"),
+      author: "Hiromu Arakawa",
+      artist: "Hiromu Arakawa",
       volumeCount: 27,
       isCompleted: true,
-      genres: ['Action', 'Adventure', 'Drama', 'Fantasy', 'Shonen'],
+      genres: ["Action", "Adventure", "Drama", "Fantasy", "Shonen"],
     },
     {
-      title: 'Death Note',
-      originalTitle: 'デスノート',
+      title: "Death Note",
+      originalTitle: "デスノート",
       description:
-        'A high school student discovers a supernatural notebook that grants its user the ability to kill anyone whose name and face they know.',
-      releaseDate: new Date('2003-12-01'),
-      author: 'Tsugumi Ohba',
-      artist: 'Takeshi Obata',
+        "A high school student discovers a supernatural notebook that grants its user the ability to kill anyone whose name and face they know.",
+      releaseDate: new Date("2003-12-01"),
+      author: "Tsugumi Ohba",
+      artist: "Takeshi Obata",
       volumeCount: 12,
       isCompleted: true,
       genres: [
-        'Mystery',
-        'Psychological',
-        'Supernatural',
-        'Thriller',
-        'Shonen',
+        "Mystery",
+        "Psychological",
+        "Supernatural",
+        "Thriller",
+        "Shonen",
       ],
     },
   ];
@@ -884,10 +885,10 @@ async function createMediaRatingsAndReviews(
       // 50% chance to also write a review
       if (Math.random() > 0.5) {
         const reviewTemplates = [
-          `I ${rating > 5 ? 'really enjoyed' : "didn't really like"} this. The ${media.mediaType === MediaType.MOVIE ? 'plot' : media.mediaType === MediaType.GAME ? 'gameplay' : 'story'} was ${rating > 5 ? 'engaging' : 'lacking'}.`,
-          `${rating > 8 ? 'Absolutely loved it!' : rating > 5 ? 'Pretty good overall.' : 'Could have been better.'} ${rating > 5 ? 'Highly recommended.' : 'Not sure I would recommend this.'}`,
-          `${rating > 5 ? 'One of the best' : 'Not the best'} ${media.mediaType.toLowerCase()}s I've experienced. ${rating > 5 ? 'Worth checking out!' : 'Maybe skip this one.'}`,
-          `Giving this a ${rating}/10. ${rating > 7 ? 'Outstanding!' : rating > 4 ? 'Decent.' : 'Disappointing.'}`,
+          `I ${rating > 5 ? "really enjoyed" : "didn't really like"} this. The ${media.mediaType === MediaType.MOVIE ? "plot" : media.mediaType === MediaType.GAME ? "gameplay" : "story"} was ${rating > 5 ? "engaging" : "lacking"}.`,
+          `${rating > 8 ? "Absolutely loved it!" : rating > 5 ? "Pretty good overall." : "Could have been better."} ${rating > 5 ? "Highly recommended." : "Not sure I would recommend this."}`,
+          `${rating > 5 ? "One of the best" : "Not the best"} ${media.mediaType.toLowerCase()}s I've experienced. ${rating > 5 ? "Worth checking out!" : "Maybe skip this one."}`,
+          `Giving this a ${rating}/10. ${rating > 7 ? "Outstanding!" : rating > 4 ? "Decent." : "Disappointing."}`,
         ];
 
         const randomReview =
@@ -925,11 +926,11 @@ async function createMediaRatingsAndReviews(
 // Create media lists for users
 async function createMediaLists(users: any[], allMedia: any[]) {
   const listTemplates = [
-    { name: 'Favorites', description: 'My all-time favorites' },
-    { name: 'Watch Later', description: 'Things I want to check out' },
-    { name: 'Currently Watching', description: "What I'm into right now" },
-    { name: 'Completed', description: "What I've finished" },
-    { name: 'Dropped', description: 'Gave up on these' },
+    { name: "Favorites", description: "My all-time favorites" },
+    { name: "Watch Later", description: "Things I want to check out" },
+    { name: "Currently Watching", description: "What I'm into right now" },
+    { name: "Completed", description: "What I've finished" },
+    { name: "Dropped", description: "Gave up on these" },
   ];
 
   await Promise.all(
@@ -1012,33 +1013,33 @@ async function createNotifications(users: string | any[]) {
   const notificationTemplates = [
     {
       type: NotificationType.NEW_RECOMMENDATION,
-      title: 'New Recommendations Available',
-      message: 'We have new recommendations based on your preferences!',
+      title: "New Recommendations Available",
+      message: "We have new recommendations based on your preferences!",
     },
     {
       type: NotificationType.NEW_FOLLOWER,
-      title: 'New Follower',
-      message: 'Someone started following you!',
+      title: "New Follower",
+      message: "Someone started following you!",
     },
     {
       type: NotificationType.NEW_RATING,
-      title: 'Rating on Your Review',
-      message: 'Someone liked your review!',
+      title: "Rating on Your Review",
+      message: "Someone liked your review!",
     },
     {
       type: NotificationType.NEW_REVIEW,
-      title: 'New Review',
-      message: 'A media item on your list has a new review!',
+      title: "New Review",
+      message: "A media item on your list has a new review!",
     },
     {
       type: NotificationType.LIST_SHARE,
-      title: 'List Shared With You',
-      message: 'Someone shared a media list with you!',
+      title: "List Shared With You",
+      message: "Someone shared a media list with you!",
     },
     {
       type: NotificationType.SYSTEM_NOTIFICATION,
-      title: 'Welcome to MediaTracker',
-      message: 'Thanks for joining! Start tracking your favorite media!',
+      title: "Welcome to MediaTracker",
+      message: "Thanks for joining! Start tracking your favorite media!",
     },
   ];
 
@@ -1110,7 +1111,7 @@ async function updateMediaRatings(allMedia: string | any[]) {
 // Run the seeding
 main()
   .catch((e) => {
-    console.error('Error during seeding:', e);
+    console.error("Error during seeding:", e);
     process.exit(1);
   })
   .finally(async () => {
