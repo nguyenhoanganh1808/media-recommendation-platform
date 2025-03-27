@@ -1,10 +1,13 @@
-import app from './app';
-import { logger } from './config/logger';
-import { config } from './config/env';
-import { connectDB } from './config/database';
-import { connectRedis } from './config/redis';
+import app from "./app";
+import { logger } from "./config/logger";
+import { config } from "./config/env";
+import { connectDB } from "./config/database";
+import { connectRedis } from "./config/redis";
+import { initializeJobs } from "./jobs";
 
 const PORT = config.PORT || 3000;
+
+initializeJobs();
 
 const server = app.listen(PORT, async () => {
   await connectDB();
@@ -16,8 +19,8 @@ const server = app.listen(PORT, async () => {
 });
 
 // Handle unhandled promise rejections
-process.on('unhandledRejection', (err: Error) => {
-  logger.error('UNHANDLED REJECTION! 💥 Shutting down...');
+process.on("unhandledRejection", (err: Error) => {
+  logger.error("UNHANDLED REJECTION! 💥 Shutting down...");
   logger.error(err.name, err.message);
   server.close(() => {
     process.exit(1);
@@ -25,17 +28,17 @@ process.on('unhandledRejection', (err: Error) => {
 });
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (err: Error) => {
-  logger.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
+process.on("uncaughtException", (err: Error) => {
+  logger.error("UNCAUGHT EXCEPTION! 💥 Shutting down...");
   logger.error(err.name, err.message);
   process.exit(1);
 });
 
 // Handle SIGTERM signal
-process.on('SIGTERM', () => {
-  logger.info('👋 SIGTERM RECEIVED. Shutting down gracefully');
+process.on("SIGTERM", () => {
+  logger.info("👋 SIGTERM RECEIVED. Shutting down gracefully");
   server.close(() => {
-    logger.info('💥 Process terminated!');
+    logger.info("💥 Process terminated!");
   });
 });
 
