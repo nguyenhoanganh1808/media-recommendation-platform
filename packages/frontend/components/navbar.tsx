@@ -48,6 +48,16 @@ export default function Navbar() {
               >
                 Dashboard
               </Link>
+              <Link
+                href="/browse"
+                className={
+                  pathname === "/browse"
+                    ? "text-primary font-medium"
+                    : "text-foreground/60 hover:text-foreground"
+                }
+              >
+                Browse
+              </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
