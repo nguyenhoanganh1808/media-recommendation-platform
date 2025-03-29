@@ -29,7 +29,7 @@ export interface MediaItem {
   releaseDate: string;
   averageRating: number;
   genres: Array<{
-    id: string;
+    genreId: string;
     genre: {
       id: string;
       name: string;

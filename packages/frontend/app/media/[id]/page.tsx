@@ -160,7 +160,7 @@ export default function MediaDetailsPage() {
 
           <div className="flex flex-wrap gap-2 mt-4">
             {media.genres.map((genreItem) => (
-              <Badge key={genreItem.id} variant="secondary">
+              <Badge key={genreItem.genreId} variant="secondary">
                 {genreItem.genre.name}
               </Badge>
             ))}
