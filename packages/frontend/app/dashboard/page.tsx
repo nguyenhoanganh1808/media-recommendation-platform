@@ -12,6 +12,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+// Import the Button component
+import { Button } from "@/components/ui/button";
+import Link from "next/link";
+
 export default function DashboardPage() {
   const { isAuthenticated, user } = useSelector(
     (state: RootState) => state.auth
@@ -61,6 +65,14 @@ export default function DashboardPage() {
             <p>No trending media</p>
           </CardContent>
         </Card>
+      </div>
+
+      {/* Add a "Browse Media" button below the cards */}
+      {/* Add this after the grid of cards */}
+      <div className="mt-8 flex justify-center">
+        <Button asChild size="lg">
+          <Link href="/browse">Browse Media</Link>
+        </Button>
       </div>
     </div>
   );
