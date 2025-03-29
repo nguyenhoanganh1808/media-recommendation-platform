@@ -1,4 +1,4 @@
-import bcrypt from 'bcryptjs';
+import bcrypt from "bcryptjs";
 
 /**
  * Hash a password using bcrypt
@@ -24,7 +24,6 @@ export const comparePasswords = async (
 ): Promise<boolean> => {
   return bcrypt.compare(password, hashedPassword);
 };
-
 /**
  * Generate a secure random password
  *
@@ -33,8 +32,8 @@ export const comparePasswords = async (
  */
 export const generateRandomPassword = (length = 12): string => {
   const charset =
-    'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?';
-  let password = '';
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_-+=<>?";
+  let password = "";
 
   for (let i = 0; i < length; i++) {
     const randomIndex = Math.floor(Math.random() * charset.length);

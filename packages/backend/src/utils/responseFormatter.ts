@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Response } from "express";
 
 /**
  * Standard API response format
@@ -16,9 +16,9 @@ export interface ApiResponse<T> {
   };
   meta?: {
     pagination?: {
-      page: number;
-      limit: number;
-      total: number;
+      currentPage: number;
+      itemsPerPage: number;
+      totalItems: number;
       totalPages: number;
     };
     [key: string]: any;
@@ -37,9 +37,9 @@ export interface ApiResponse<T> {
 export const sendSuccess = <T>(
   res: Response,
   data: T,
-  message = 'Operation successful',
+  message = "Operation successful",
   statusCode = 200,
-  meta?: ApiResponse<T>['meta']
+  meta?: ApiResponse<T>["meta"]
 ): void => {
   const response: ApiResponse<T> = {
     success: true,
@@ -65,9 +65,9 @@ export const sendSuccess = <T>(
  */
 export const sendError = (
   res: Response,
-  message = 'Operation failed',
+  message = "Operation failed",
   statusCode = 400,
-  errorCode = 'BAD_REQUEST',
+  errorCode = "BAD_REQUEST",
   stack?: any,
   details?: Record<string, string>
 ): void => {
@@ -99,14 +99,14 @@ export const createPagination = (
   page: number,
   limit: number,
   total: number
-): ApiResponse<any>['meta'] => {
+): ApiResponse<any>["meta"] => {
   const totalPages = Math.ceil(total / limit);
 
   return {
     pagination: {
-      page,
-      limit,
-      total,
+      currentPage: page,
+      itemsPerPage: limit,
+      totalItems: total,
       totalPages,
     },
   };
