@@ -38,10 +38,10 @@ export interface MediaItem {
 }
 
 export interface PaginationMeta {
-  currentPage: number;
+  page: number;
+  total: number;
+  limit: number;
   totalPages: number;
-  totalItems: number;
-  itemsPerPage: number;
 }
 
 interface MediaState {
@@ -65,10 +65,10 @@ const initialState: MediaState = {
     sortOrder: "desc",
   },
   pagination: {
-    currentPage: 1,
+    page: 1,
     totalPages: 1,
-    totalItems: 0,
-    itemsPerPage: 12,
+    total: 0,
+    limit: 12,
   },
   genres: [],
   status: "idle",
