@@ -24,6 +24,7 @@ export interface MediaItem {
   title: string;
   originalTitle?: string;
   mediaType: MediaType;
+  description: string;
   coverImage: string;
   releaseDate: string;
   averageRating: number;
