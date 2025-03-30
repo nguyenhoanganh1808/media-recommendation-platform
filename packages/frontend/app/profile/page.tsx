@@ -6,6 +6,8 @@ import { useSelector } from "react-redux";
 import type { RootState } from "@/lib/store";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Edit } from "lucide-react";
 
 export default function ProfilePage() {
   const { isAuthenticated, user } = useSelector(
@@ -35,6 +37,14 @@ export default function ProfilePage() {
             <CardTitle className="text-2xl">{user?.name || "User"}</CardTitle>
             <p className="text-muted-foreground">{user?.email}</p>
           </div>
+          <Button
+            variant="outline"
+            className="ml-auto"
+            onClick={() => router.push(`/users/${user?.id}`)}
+          >
+            <Edit className="mr-2 h-4 w-4" />
+            View Full Profile
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
