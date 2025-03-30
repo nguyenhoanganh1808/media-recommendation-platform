@@ -215,7 +215,10 @@ export const unfollowUser = async (
   });
 };
 
-export const getUserFollowers = async (userId: string): Promise<User[]> => {
+export const getUserFollowers = async (
+  userId: string,
+  currentUserId?: string
+): Promise<(User & { isFollowing: boolean })[]> => {
   const followers = await prisma.follow.findMany({
     where: { followingId: userId },
     include: {
@@ -223,10 +226,16 @@ export const getUserFollowers = async (userId: string): Promise<User[]> => {
     },
   });
 
-  return followers.map((follow) => follow.follower);
+  return followers.map((follow) => ({
+    ...follow.follower,
+    isFollowing: currentUserId ? follow.followerId === currentUserId : false,
+  }));
 };
 
-export const getUserFollowing = async (userId: string): Promise<User[]> => {
+export const getUserFollowing = async (
+  userId: string,
+  currentUserId?: string
+): Promise<(User & { isFollowing: boolean })[]> => {
   const following = await prisma.follow.findMany({
     where: { followerId: userId },
     include: {
@@ -234,7 +243,10 @@ export const getUserFollowing = async (userId: string): Promise<User[]> => {
     },
   });
 
-  return following.map((follow) => follow.following);
+  return following.map((follow) => ({
+    ...follow.following,
+    isFollowing: currentUserId ? follow.followerId === currentUserId : false,
+  }));
 };
 
 export default {

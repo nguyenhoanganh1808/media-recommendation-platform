@@ -68,7 +68,8 @@ export const unfollowUser = asyncHandler(
 export const getUserFollowers = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.params.id;
-    const followers = await userService.getUserFollowers(userId);
+    const currentUserId = req.user?.id;
+    const followers = await userService.getUserFollowers(userId, currentUserId);
 
     // Don't return passwords
     const followersWithoutPasswords = followers.map((follower) => {
@@ -87,7 +88,9 @@ export const getUserFollowers = asyncHandler(
 export const getUserFollowing = asyncHandler(
   async (req: Request, res: Response) => {
     const userId = req.params.id;
-    const following = await userService.getUserFollowing(userId);
+    const currentUserId = req.user?.id;
+
+    const following = await userService.getUserFollowing(userId, currentUserId);
 
     // Don't return passwords
     const followingWithoutPasswords = following.map((user) => {
