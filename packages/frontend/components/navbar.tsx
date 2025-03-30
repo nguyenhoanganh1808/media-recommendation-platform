@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Film, User, LogOut } from "lucide-react";
+import { Film, User, LogOut, ListIcon } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -57,6 +57,19 @@ export default function Navbar() {
                 }
               >
                 Browse
+              </Link>
+              <Link
+                href="/lists"
+                className={
+                  pathname === "/lists" || pathname.startsWith("/lists/")
+                    ? "text-primary font-medium"
+                    : "text-foreground/60 hover:text-foreground"
+                }
+              >
+                <span className="flex items-center">
+                  <ListIcon className="h-4 w-4 mr-1" />
+                  My Lists
+                </span>
               </Link>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
