@@ -1,13 +1,6 @@
 import axios from "axios";
 import type { UserProfile, UserItem } from "@/lib/features/users/userSlice";
-
-// Create axios instance
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.example.com",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import { api } from "./auth";
 
 // Fetch user profile
 export const fetchUserProfile = async (

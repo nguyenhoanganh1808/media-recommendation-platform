@@ -4,14 +4,7 @@ import type {
   MediaItem,
   PaginationMeta,
 } from "@/lib/features/media/mediaSlice";
-
-// Create axios instance
-const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.example.com",
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
+import { api } from "./auth";
 
 interface MediaResponse {
   data: MediaItem[];
