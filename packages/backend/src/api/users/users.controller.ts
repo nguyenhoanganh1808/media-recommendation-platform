@@ -1,8 +1,8 @@
-import { Request, Response } from 'express';
-import asyncHandler from '../../utils/asyncHandler';
-import { sendSuccess } from '../../utils/responseFormatter';
-import * as userService from './users.service';
-import { AppError } from '../../middlewares/error.middleware';
+import { Request, Response } from "express";
+import asyncHandler from "../../utils/asyncHandler";
+import { sendSuccess } from "../../utils/responseFormatter";
+import * as userService from "./users.service";
+import { AppError } from "../../middlewares/error.middleware";
 
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
   const userData = req.body;
@@ -14,17 +14,18 @@ export const createUser = asyncHandler(async (req: Request, res: Response) => {
   // Don't return the password in the response
   const { password, ...userWithoutPassword } = user;
 
-  sendSuccess(res, userWithoutPassword, 'User created successfully', 201);
+  sendSuccess(res, userWithoutPassword, "User created successfully", 201);
 });
 
 export const getUser = asyncHandler(async (req: Request, res: Response) => {
   const userId = req.params.id;
-  const user = await userService.getUserById(userId);
+  const currentUserId = req.user?.id;
+  const user = await userService.getUserById(userId, currentUserId);
 
   // Don't return the password
   const { password, ...userWithoutPassword } = user;
 
-  sendSuccess(res, userWithoutPassword, 'User retrieved successfully');
+  sendSuccess(res, userWithoutPassword, "User retrieved successfully");
 });
 
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
@@ -32,8 +33,8 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
   const authUser = req.user!;
 
   // Check if the user is updating their own profile or is an admin
-  if (userId !== authUser.id && authUser.role !== 'ADMIN') {
-    throw new AppError('You do not have permission to update this user', 403);
+  if (userId !== authUser.id && authUser.role !== "ADMIN") {
+    throw new AppError("You do not have permission to update this user", 403);
   }
 
   const updatedUser = await userService.updateUser(userId, req.body);
@@ -41,7 +42,7 @@ export const updateUser = asyncHandler(async (req: Request, res: Response) => {
   // Don't return the password
   const { password, ...userWithoutPassword } = updatedUser;
 
-  sendSuccess(res, userWithoutPassword, 'User updated successfully');
+  sendSuccess(res, userWithoutPassword, "User updated successfully");
 });
 
 export const followUser = asyncHandler(async (req: Request, res: Response) => {
@@ -50,7 +51,7 @@ export const followUser = asyncHandler(async (req: Request, res: Response) => {
 
   await userService.followUser(followerId, followingId);
 
-  sendSuccess(res, null, 'User followed successfully');
+  sendSuccess(res, null, "User followed successfully");
 });
 
 export const unfollowUser = asyncHandler(
@@ -60,7 +61,7 @@ export const unfollowUser = asyncHandler(
 
     await userService.unfollowUser(followerId, followingId);
 
-    sendSuccess(res, null, 'User unfollowed successfully');
+    sendSuccess(res, null, "User unfollowed successfully");
   }
 );
 
@@ -78,7 +79,7 @@ export const getUserFollowers = asyncHandler(
     sendSuccess(
       res,
       followersWithoutPasswords,
-      'User followers retrieved successfully'
+      "User followers retrieved successfully"
     );
   }
 );
@@ -97,7 +98,7 @@ export const getUserFollowing = asyncHandler(
     sendSuccess(
       res,
       followingWithoutPasswords,
-      'User following retrieved successfully'
+      "User following retrieved successfully"
     );
   }
 );

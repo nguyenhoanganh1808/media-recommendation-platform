@@ -337,6 +337,5 @@ export class NotificationJob {
    */
   public async cleanup(): Promise<void> {
     await this.prisma.$disconnect();
-    await this.redisClient.disconnect();
   }
 }
