@@ -13,7 +13,7 @@ import type { RootState, AppDispatch } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import { ListCard } from "@/components/lists/list-card";
 import { ListForm } from "@/components/lists/list-form";
-import { Pagination } from "@/components/media/pagination";
+import { Pagination } from "@/components/lists/pagination";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import {

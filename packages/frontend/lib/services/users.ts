@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { UserProfile, UserItem } from "@/lib/features/users/userSlice";
-import { api } from "./auth";
+import { api } from "./api";
 
 // Fetch user profile
 export const fetchUserProfile = async (

@@ -1,9 +1,9 @@
 "use client";
 
+import type { AppDispatch } from "@/lib/store";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux";
 import { fetchMediaItems } from "@/lib/features/media/mediaSlice";
-import type { AppDispatch } from "@/lib/store";
 import { FilterBar } from "@/components/media/filter-bar";
 import { MediaGrid } from "@/components/media/media-grid";
 import { Pagination } from "@/components/media/pagination";

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { api } from "./auth";
+import { api } from "./api";
 import { MediaFilters, MediaItem, PaginationMeta } from "../types/media.types";
 
 interface MediaResponse {

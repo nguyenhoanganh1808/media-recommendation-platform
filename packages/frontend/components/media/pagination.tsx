@@ -1,5 +1,8 @@
 "use client";
 
+import { useDispatch, useSelector } from "react-redux";
+import { setPage, setLimit } from "@/lib/features/media/mediaSlice";
+import type { RootState } from "@/lib/store";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -15,23 +18,14 @@ import {
   ChevronsRight,
 } from "lucide-react";
 
-interface PaginationProps {
-  currentPage: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-  itemsPerPage?: number;
-  onItemsPerPageChange?: (itemsPerPage: number) => void;
-  totalItems?: number;
-}
+export function Pagination() {
+  const dispatch = useDispatch();
+  const { pagination, filters } = useSelector(
+    (state: RootState) => state.media
+  );
 
-export function Pagination({
-  currentPage,
-  totalPages,
-  onPageChange,
-  itemsPerPage,
-  onItemsPerPageChange,
-  totalItems,
-}: PaginationProps) {
+  const { currentPage, totalPages, totalItems, itemsPerPage } = pagination;
+
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pageNumbers = [];
@@ -84,35 +78,40 @@ export function Pagination({
 
   const pageNumbers = getPageNumbers();
 
-  // Handle items per page change
-  const handleItemsPerPageChange = (value: string) => {
-    if (onItemsPerPageChange) {
-      onItemsPerPageChange(Number.parseInt(value));
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      dispatch(setPage(page));
+      // Scroll to top of the page
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
+  };
+
+  // Handle items per page change
+  const handleLimitChange = (value: string) => {
+    dispatch(setLimit(Number.parseInt(value)));
   };
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 py-4">
-      {totalItems !== undefined && itemsPerPage !== undefined && (
-        <div className="text-sm text-muted-foreground">
-          Showing{" "}
-          <span className="font-medium">
-            {Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1)}
-          </span>{" "}
-          to{" "}
-          <span className="font-medium">
-            {Math.min(currentPage * itemsPerPage, totalItems)}
-          </span>{" "}
-          of <span className="font-medium">{totalItems}</span> results
-        </div>
-      )}
+      <div className="text-sm text-muted-foreground">
+        Showing{" "}
+        <span className="font-medium">
+          {Math.min(totalItems, (currentPage - 1) * itemsPerPage + 1)}
+        </span>{" "}
+        to{" "}
+        <span className="font-medium">
+          {Math.min(currentPage * itemsPerPage, totalItems)}
+        </span>{" "}
+        of <span className="font-medium">{totalItems}</span> results
+      </div>
 
       <div className="flex items-center gap-2">
         <div className="flex items-center">
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onPageChange(1)}
+            onClick={() => handlePageChange(1)}
             disabled={currentPage === 1}
             aria-label="First page"
           >
@@ -121,7 +120,7 @@ export function Pagination({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onPageChange(currentPage - 1)}
+            onClick={() => handlePageChange(currentPage - 1)}
             disabled={currentPage === 1}
             aria-label="Previous page"
           >
@@ -143,7 +142,7 @@ export function Pagination({
                   key={`page-${page}`}
                   variant={currentPage === page ? "default" : "outline"}
                   size="icon"
-                  onClick={() => onPageChange(page as number)}
+                  onClick={() => handlePageChange(page as number)}
                   className="h-8 w-8 mx-0.5"
                 >
                   {page}
@@ -155,7 +154,7 @@ export function Pagination({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onPageChange(currentPage + 1)}
+            onClick={() => handlePageChange(currentPage + 1)}
             disabled={currentPage === totalPages}
             aria-label="Next page"
           >
@@ -164,7 +163,7 @@ export function Pagination({
           <Button
             variant="outline"
             size="icon"
-            onClick={() => onPageChange(totalPages)}
+            onClick={() => handlePageChange(totalPages)}
             disabled={currentPage === totalPages}
             aria-label="Last page"
           >
@@ -172,22 +171,20 @@ export function Pagination({
           </Button>
         </div>
 
-        {onItemsPerPageChange && (
-          <Select
-            value={itemsPerPage?.toString()}
-            onValueChange={handleItemsPerPageChange}
-          >
-            <SelectTrigger className="w-[100px]">
-              <SelectValue placeholder="Per page" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="10">10 per page</SelectItem>
-              <SelectItem value="20">20 per page</SelectItem>
-              <SelectItem value="30">30 per page</SelectItem>
-              <SelectItem value="50">50 per page</SelectItem>
-            </SelectContent>
-          </Select>
-        )}
+        <Select
+          value={filters.limit.toString()}
+          onValueChange={handleLimitChange}
+        >
+          <SelectTrigger className="w-[100px]">
+            <SelectValue placeholder="Per page" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="12">12 per page</SelectItem>
+            <SelectItem value="24">24 per page</SelectItem>
+            <SelectItem value="36">36 per page</SelectItem>
+            <SelectItem value="48">48 per page</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

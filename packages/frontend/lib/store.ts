@@ -24,5 +24,9 @@ export const store = configureStore({
     }),
 });
 
+// Initialize API interceptors after store creation
+import { initializeApi } from "./services/api";
+initializeApi(store);
+
 export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;

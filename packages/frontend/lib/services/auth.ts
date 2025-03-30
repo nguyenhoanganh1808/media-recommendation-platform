@@ -1,16 +1,6 @@
 import axios from "axios";
-import { setupInterceptors } from "./api";
 
-// Create axios instance
-export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-});
-
-// Setup interceptors for token refresh
-setupInterceptors(api);
+import { apiClient } from "./apiClient";
 
 interface LoginCredentials {
   email: string;
@@ -44,7 +34,7 @@ export const loginUser = async (
   credentials: LoginCredentials
 ): Promise<AuthResponse> => {
   try {
-    const response = await api.post("/auth/login", credentials);
+    const response = await apiClient.post("/auth/login", credentials);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -58,7 +48,7 @@ export const registerUser = async (
   credentials: RegisterCredentials
 ): Promise<AuthResponse> => {
   try {
-    const response = await api.post("/auth/register", credentials);
+    const response = await apiClient.post("/auth/register", credentials);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -72,7 +62,9 @@ export const refreshAuthToken = async (
   refreshToken: string
 ): Promise<{ accessToken: string; refreshToken: string }> => {
   try {
-    const response = await api.post("/auth/refresh-token", { refreshToken });
+    const response = await apiClient.post("/auth/refresh-token", {
+      refreshToken,
+    });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -84,7 +76,7 @@ export const refreshAuthToken = async (
 
 export const logoutUser = async (): Promise<void> => {
   try {
-    await api.post("/auth/logout");
+    await apiClient.post("/auth/logout");
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Logout failed");
@@ -95,7 +87,7 @@ export const logoutUser = async (): Promise<void> => {
 
 export const getUserProfile = async (): Promise<any> => {
   try {
-    const response = await api.get("/auth/profile");
+    const response = await apiClient.get("/auth/profile");
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

@@ -17,7 +17,7 @@ export interface ListItem {
   mediaId: string;
   listId: string;
   notes: string | null;
-  position: number;
+  order: number;
   createdAt: string;
   updatedAt: string;
   media: MediaItem;
@@ -190,7 +190,7 @@ export const removeFromList = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      await removeItemFromList(listId, itemId);
+      await removeItemFromList(itemId);
       return { listId, itemId };
     } catch (error) {
       return rejectWithValue(
@@ -388,7 +388,7 @@ const listsSlice = createSlice({
             .map((id, index) => {
               const item = itemMap.get(id);
               if (item) {
-                return { ...item, position: index };
+                return { ...item, order: index };
               }
               return null;
             })

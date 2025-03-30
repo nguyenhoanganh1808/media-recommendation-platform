@@ -4,8 +4,7 @@ import type {
   MediaList,
   ListItem,
 } from "@/lib/features/lists/listsSlice";
-import { fetchMediaDetails } from "./media";
-import { api } from "./auth";
+import { api } from "./api";
 
 interface ListsResponse {
   data: MediaList[];
@@ -41,7 +40,7 @@ export const fetchListDetails = async (
 ): Promise<MediaListDetails> => {
   try {
     const response = await api.get(`/lists/${listId}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
@@ -64,7 +63,7 @@ export const createList = async ({
 }): Promise<MediaList> => {
   try {
     const response = await api.post("/lists", { name, description, isPublic });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Failed to create list");
@@ -92,7 +91,7 @@ export const updateList = async (
       description,
       isPublic,
     });
-    return response.data;
+    return response.data.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Failed to update list");
@@ -136,12 +135,9 @@ export const addItemToList = async (
 };
 
 // Remove item from list
-export const removeItemFromList = async (
-  listId: string,
-  itemId: string
-): Promise<void> => {
+export const removeItemFromList = async (itemId: string): Promise<void> => {
   try {
-    await api.delete(`/lists/${listId}/items/${itemId}`);
+    await api.delete(`/lists/items/${itemId}`);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
