@@ -1,9 +1,9 @@
-import { prisma } from '../../config/database';
-import { AppError } from '../../middlewares/error.middleware';
-import { MediaList, MediaListItem, User } from '@prisma/client';
-import { clearCacheByPattern } from '../../middlewares/cache.middleware';
-import { createPagination } from '../../utils/responseFormatter';
-import asyncHandler from '../../utils/asyncHandler';
+import { prisma } from "../../config/database";
+import { AppError } from "../../middlewares/error.middleware";
+import { MediaList, MediaListItem, User } from "@prisma/client";
+import { clearCacheByPattern } from "../../middlewares/cache.middleware";
+import { createPagination } from "../../utils/responseFormatter";
+import asyncHandler from "../../utils/asyncHandler";
 
 /**
  * Service for handling list operations
@@ -49,7 +49,7 @@ export const updateList = async (
   });
 
   if (!list) {
-    throw new AppError('List not found', 404);
+    throw new AppError("List not found", 404);
   }
 
   const updatedList = await prisma.mediaList.update({
@@ -79,14 +79,14 @@ export const addItemToList = async (
     where: { id: listId },
     include: {
       items: {
-        orderBy: { order: 'desc' },
+        orderBy: { order: "desc" },
         take: 1,
       },
     },
   });
 
   if (!list) {
-    throw new AppError('List not found', 404);
+    throw new AppError("List not found", 404);
   }
 
   // Check if the media exists
@@ -95,7 +95,7 @@ export const addItemToList = async (
   });
 
   if (!media) {
-    throw new AppError('Media not found', 404);
+    throw new AppError("Media not found", 404);
   }
 
   // Check if the item already exists in the list
@@ -107,7 +107,7 @@ export const addItemToList = async (
   });
 
   if (existingItem) {
-    throw new AppError('Item already exists in this list', 409);
+    throw new AppError("Item already exists in this list", 409);
   }
 
   // Get the highest order value to place the new item at the end
@@ -148,11 +148,11 @@ export const removeItemFromList = async (
   });
 
   if (!item) {
-    throw new AppError('List item not found', 404);
+    throw new AppError("List item not found", 404);
   }
 
   if (item.list.userId !== userId) {
-    throw new AppError('Forbidden - User does not own this list', 403);
+    throw new AppError("Forbidden - User does not own this list", 403);
   }
 
   await prisma.mediaListItem.delete({
@@ -178,7 +178,7 @@ export const reorderListItems = async (
   });
 
   if (!list) {
-    throw new AppError('List not found', 404);
+    throw new AppError("List not found", 404);
   }
 
   // Transaction to update all items at once
@@ -228,10 +228,10 @@ export const getPopularLists = async (limit: number = 10): Promise<any[]> => {
     orderBy: [
       {
         items: {
-          _count: 'desc',
+          _count: "desc",
         },
       },
-      { updatedAt: 'desc' },
+      { updatedAt: "desc" },
     ],
   });
 
@@ -270,7 +270,7 @@ export const shareList = async (
   });
 
   if (!list) {
-    throw new AppError('List not found or is not public', 404);
+    throw new AppError("List not found or is not public", 404);
   }
 
   // Check if the user we're sharing with exists
@@ -279,15 +279,15 @@ export const shareList = async (
   });
 
   if (!targetUser) {
-    throw new AppError('User not found', 404);
+    throw new AppError("User not found", 404);
   }
 
   // Create a notification for the shared user
   await prisma.notification.create({
     data: {
       userId: sharedWithUserId,
-      type: 'LIST_SHARE',
-      title: 'List Shared With You',
+      type: "LIST_SHARE",
+      title: "List Shared With You",
       message: `${list.user.username} shared their list "${list.name}" with you`,
       data: {
         listId: list.id,
@@ -308,7 +308,7 @@ export const getListByUser = async (
       where: { userId },
       skip,
       take: limit,
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
       include: {
         _count: {
           select: { items: true },
@@ -355,7 +355,7 @@ export const getListById = async (
             },
           },
         },
-        orderBy: { order: 'asc' },
+        orderBy: { order: "asc" },
       },
       _count: {
         select: { items: true },
@@ -364,18 +364,19 @@ export const getListById = async (
   });
 
   if (!list) {
-    throw new AppError('List not found', 404);
+    throw new AppError("List not found", 404);
   }
 
   // Check if user has permission to view this list
   if (!list.isPublic && list.userId !== userId) {
-    throw new AppError('You do not have permission to view this list', 403);
+    throw new AppError("You do not have permission to view this list", 403);
   }
 
   // Format the response
   const formattedItems = list.items.map((item) => ({
     id: item.id,
     mediaId: item.mediaId,
+    listId: item.listId,
     notes: item.notes,
     order: item.order,
     media: {
@@ -417,15 +418,15 @@ export const updateListItem = async (
   });
 
   if (!item) {
-    throw new AppError('List item not found', 404);
+    throw new AppError("List item not found", 404);
   }
 
   if (
     item.list.userId !== user.id &&
-    user.role !== 'ADMIN' &&
-    user.role !== 'MODERATOR'
+    user.role !== "ADMIN" &&
+    user.role !== "MODERATOR"
   ) {
-    throw new AppError('Forbidden - User does not own this list', 403);
+    throw new AppError("Forbidden - User does not own this list", 403);
   }
 
   return await prisma.mediaListItem.update({
@@ -457,7 +458,7 @@ export const getUserPublicLists = async (
       },
       skip,
       take: limit,
-      orderBy: { updatedAt: 'desc' },
+      orderBy: { updatedAt: "desc" },
       include: {
         _count: {
           select: { items: true },
