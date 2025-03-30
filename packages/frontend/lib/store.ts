@@ -2,12 +2,14 @@ import { configureStore } from "@reduxjs/toolkit";
 import authReducer from "./features/auth/authSlice";
 import mediaReducer from "./features/media/mediaSlice";
 import userReducer from "./features/users/userSlice";
+import listsReducer from "./features/lists/listsSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     media: mediaReducer,
     users: userReducer,
+    lists: listsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
