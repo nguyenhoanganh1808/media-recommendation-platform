@@ -10,11 +10,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
-
-// Import the Button component
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { ListPlus, Search, Star, TrendingUp } from "lucide-react";
 
 export default function DashboardPage() {
   const { isAuthenticated, user } = useSelector(
@@ -40,39 +40,55 @@ export default function DashboardPage() {
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Your Lists</CardTitle>
+            <CardTitle className="flex items-center">
+              <ListPlus className="mr-2 h-5 w-5" />
+              Your Lists
+            </CardTitle>
             <CardDescription>Manage your media lists</CardDescription>
           </CardHeader>
           <CardContent>
-            <p>You have 0 lists</p>
+            <p>Create and manage your custom media lists</p>
           </CardContent>
+          <CardFooter>
+            <Button asChild>
+              <Link href="/lists">View Lists</Link>
+            </Button>
+          </CardFooter>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Recommendations</CardTitle>
+            <CardTitle className="flex items-center">
+              <TrendingUp className="mr-2 h-5 w-5" />
+              Recommendations
+            </CardTitle>
             <CardDescription>Personalized for you</CardDescription>
           </CardHeader>
           <CardContent>
-            <p>No recommendations yet</p>
+            <p>Discover new media based on your preferences</p>
           </CardContent>
+          <CardFooter>
+            <Button variant="outline" disabled>
+              Coming Soon
+            </Button>
+          </CardFooter>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Trending</CardTitle>
+            <CardTitle className="flex items-center">
+              <Star className="mr-2 h-5 w-5" />
+              Trending
+            </CardTitle>
             <CardDescription>Popular right now</CardDescription>
           </CardHeader>
           <CardContent>
-            <p>No trending media</p>
+            <p>See what's popular across all users</p>
           </CardContent>
+          <CardFooter>
+            <Button asChild>
+              <Link href="/browse">Browse Media</Link>
+            </Button>
+          </CardFooter>
         </Card>
-      </div>
-
-      {/* Add a "Browse Media" button below the cards */}
-      {/* Add this after the grid of cards */}
-      <div className="mt-8 flex justify-center">
-        <Button asChild size="lg">
-          <Link href="/browse">Browse Media</Link>
-        </Button>
       </div>
     </div>
   );
