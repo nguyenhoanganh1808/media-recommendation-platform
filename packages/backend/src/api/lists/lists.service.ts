@@ -3,7 +3,6 @@ import { AppError } from "../../middlewares/error.middleware";
 import { MediaList, MediaListItem, User } from "@prisma/client";
 import { clearCacheByPattern } from "../../middlewares/cache.middleware";
 import { createPagination } from "../../utils/responseFormatter";
-import asyncHandler from "../../utils/asyncHandler";
 
 /**
  * Service for handling list operations
@@ -429,7 +428,8 @@ export const updateListItem = async (
     throw new AppError("Forbidden - User does not own this list", 403);
   }
 
-  return await prisma.mediaListItem.update({
+  // Update the item
+  const updatedItem = await prisma.mediaListItem.update({
     where: { id: itemId },
     data: {
       notes,
@@ -442,6 +442,13 @@ export const updateListItem = async (
       },
     },
   });
+
+  await clearCacheByPattern(`user:${item.list.userId}:/api/lists`);
+  if (item.list.isPublic) {
+    await clearCacheByPattern(`lists:public:${item.list.userId}`);
+  }
+
+  return updateListItem;
 };
 
 export const getUserPublicLists = async (
