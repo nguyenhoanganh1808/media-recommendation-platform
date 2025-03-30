@@ -31,7 +31,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ListPlus, Plus, Loader2 } from "lucide-react";
 import type { AppDispatch } from "@/lib/store";
-import type { MediaItem } from "@/lib/features/media/mediaSlice";
+import type { MediaItem } from "@/lib/types/media.types";
 import { toast } from "sonner";
 
 interface AddToListModalProps {

@@ -10,14 +10,14 @@ import {
   reorderList,
 } from "@/lib/services/lists";
 import type { RootState } from "@/lib/store";
-import type { MediaItem } from "@/lib/features/media/mediaSlice";
+import type { MediaItem } from "@/lib/types/media.types";
 
 export interface ListItem {
   id: string;
   mediaId: string;
   listId: string;
   notes: string | null;
-  order: number;
+  position: number;
   createdAt: string;
   updatedAt: string;
   media: MediaItem;
@@ -388,7 +388,7 @@ const listsSlice = createSlice({
             .map((id, index) => {
               const item = itemMap.get(id);
               if (item) {
-                return { ...item, order: index };
+                return { ...item, position: index };
               }
               return null;
             })

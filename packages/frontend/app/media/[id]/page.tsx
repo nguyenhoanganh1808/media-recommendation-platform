@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { fetchMediaDetails } from "@/lib/services/media";
-import type { MediaItem } from "@/lib/features/media/mediaSlice";
+import type { MediaItem } from "@/lib/types/media.types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
