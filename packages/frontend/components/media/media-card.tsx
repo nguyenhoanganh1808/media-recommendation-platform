@@ -58,7 +58,11 @@ export function MediaCard({ media }: MediaCardProps) {
         </CardContent>
         <CardFooter className="p-4 pt-0 flex flex-wrap gap-1">
           {media.genres.slice(0, 2).map((genreItem) => (
-            <Badge key={genreItem.id} variant="outline" className="text-xs">
+            <Badge
+              key={genreItem.genreId}
+              variant="outline"
+              className="text-xs"
+            >
               {genreItem.genre.name}
             </Badge>
           ))}

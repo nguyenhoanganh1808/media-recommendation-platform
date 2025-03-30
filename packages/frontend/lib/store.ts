@@ -7,17 +7,6 @@ export const store = configureStore({
     auth: authReducer,
     media: mediaReducer,
   },
-  middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware({
-      serializableCheck: {
-        // Ignore these action types
-        ignoredActions: ["auth/login", "auth/refreshToken"],
-        // Ignore these field paths in all actions
-        ignoredActionPaths: ["payload.refreshToken"],
-        // Ignore these paths in the state
-        ignoredPaths: ["auth.refreshToken"],
-      },
-    }),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

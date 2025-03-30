@@ -36,7 +36,7 @@ export const fetchMedia = async (
 export const fetchMediaDetails = async (id: string): Promise<MediaItem> => {
   try {
     const response = await api.get(`/media/${id}`);
-    return response.data;
+    return response.data.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(

@@ -3,7 +3,7 @@ import { setupInterceptors } from "./api";
 
 // Create axios instance
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "https://api.example.com",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     "Content-Type": "application/json",
   },
@@ -36,12 +36,10 @@ interface AuthResponse {
   refreshToken: string;
 }
 
-// For demo purposes, we'll simulate API calls
 export const loginUser = async (
   credentials: LoginCredentials
 ): Promise<AuthResponse> => {
   try {
-    // In a real app, this would be:
     const response = await api.post("/auth/login", credentials);
     return response.data;
   } catch (error) {
@@ -70,12 +68,22 @@ export const refreshAuthToken = async (
   refreshToken: string
 ): Promise<{ accessToken: string; refreshToken: string }> => {
   try {
-    // In a real app, this would be:
     const response = await api.post("/auth/refresh-token", { refreshToken });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(error.response?.data?.message || "Token refresh failed");
+    }
+    throw error;
+  }
+};
+
+export const logoutUser = async (): Promise<void> => {
+  try {
+    await api.post("/auth/logout");
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(error.response?.data?.message || "Logout failed");
     }
     throw error;
   }
