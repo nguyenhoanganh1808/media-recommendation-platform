@@ -2,13 +2,20 @@ import type { AxiosInstance } from "axios";
 import { store } from "@/lib/store";
 import { refreshToken, logout } from "@/lib/features/auth/authSlice";
 import { refreshAuthToken } from "./auth";
+import { getAuthFromStorage } from "@/lib/utils/storage";
 
 export const setupInterceptors = (api: AxiosInstance) => {
   // Request interceptor
   api.interceptors.request.use(
     (config) => {
-      const state = store.getState();
-      const token = state.auth.accessToken;
+      // First try to get token from Redux store
+      let token = store.getState().auth.accessToken;
+
+      // If not available in store, try localStorage
+      if (!token) {
+        const storedAuth = getAuthFromStorage();
+        token = storedAuth.accessToken;
+      }
 
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
@@ -34,8 +41,14 @@ export const setupInterceptors = (api: AxiosInstance) => {
         originalRequest._retry = true;
 
         try {
-          const state = store.getState();
-          const refreshTokenValue = state.auth.refreshToken;
+          // First try to get refresh token from Redux store
+          let refreshTokenValue = store.getState().auth.refreshToken;
+
+          // If not available in store, try localStorage
+          if (!refreshTokenValue) {
+            const storedAuth = getAuthFromStorage();
+            refreshTokenValue = storedAuth.refreshToken;
+          }
 
           if (!refreshTokenValue) {
             store.dispatch(logout());
