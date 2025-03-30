@@ -123,11 +123,13 @@ export default function UserProfilePage() {
           <div className="md:w-1/3">
             <div className="flex flex-col items-center text-center">
               <Avatar className="h-40 w-40">
-                <AvatarImage src={profile.avatar} alt={profile.name} />
-                <AvatarFallback>{profile.name.charAt(0)}</AvatarFallback>
+                <AvatarImage src={profile.avatar} alt={profile.firstName} />
+                <AvatarFallback>{profile.firstName.charAt(0)}</AvatarFallback>
               </Avatar>
 
-              <h1 className="text-2xl font-bold mt-4">{profile.name}</h1>
+              <h1 className="text-2xl font-bold mt-4">
+                {profile.firstName} {profile.lastName}
+              </h1>
               <p className="text-muted-foreground">@{profile.username}</p>
 
               <div className="flex items-center text-sm text-muted-foreground mt-2">

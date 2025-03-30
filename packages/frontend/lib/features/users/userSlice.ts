@@ -10,7 +10,8 @@ import type { RootState } from "@/lib/store";
 
 export interface UserProfile {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   username: string;
   email: string;
   bio: string;
@@ -27,7 +28,8 @@ export interface UserProfile {
 
 export interface UserItem {
   id: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   username: string;
   avatar: string;
   bio: string;

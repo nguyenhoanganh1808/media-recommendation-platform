@@ -21,11 +21,13 @@ export function UserCard({ user, currentUserId }: UserCardProps) {
             className="flex items-center gap-3 flex-1"
           >
             <Avatar className="h-10 w-10">
-              <AvatarImage src={user.avatar} alt={user.name} />
-              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+              <AvatarImage src={user.avatar} alt={user.firstName} />
+              <AvatarFallback>{user.firstName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium truncate">{user.name}</h3>
+              <h3 className="font-medium truncate">
+                {user.firstName} {user.lastName}
+              </h3>
               <p className="text-sm text-muted-foreground truncate">
                 @{user.username}
               </p>
