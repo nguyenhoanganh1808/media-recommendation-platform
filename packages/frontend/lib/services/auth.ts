@@ -24,16 +24,20 @@ interface RegisterCredentials {
 }
 
 interface AuthResponse {
-  user: {
-    id: string;
-    name: string;
-    email: string;
-    username?: string;
-    avatar?: string;
-    createdAt?: string;
+  success: boolean;
+  message: string;
+  data: {
+    user: {
+      id: string;
+      name: string;
+      email: string;
+      username?: string;
+      avatar?: string;
+      createdAt?: string;
+    };
+    accessToken: string;
+    refreshToken: string;
   };
-  accessToken: string;
-  refreshToken: string;
 }
 
 export const loginUser = async (

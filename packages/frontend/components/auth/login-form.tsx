@@ -34,14 +34,14 @@ export function LoginForm() {
     setIsLoading(true);
 
     try {
-      const response = await loginUser({ email, password });
+      const { data } = await loginUser({ email, password });
 
       // Store tokens and user data in Redux
       dispatch(
         login({
-          user: response.user,
-          accessToken: response.accessToken,
-          refreshToken: response.refreshToken,
+          user: data.user,
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
         })
       );
 
