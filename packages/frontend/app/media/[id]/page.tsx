@@ -9,6 +9,9 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, Star } from "lucide-react";
+import { useSelector } from "react-redux";
+import { RootState } from "@/lib/store";
+import { AddToListModal } from "@/components/lists/add-to-list-modal";
 
 export default function MediaDetailsPage() {
   const params = useParams();
@@ -16,6 +19,7 @@ export default function MediaDetailsPage() {
   const [media, setMedia] = useState<MediaItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -174,8 +178,18 @@ export default function MediaDetailsPage() {
           </div>
 
           <div className="mt-8 flex gap-4">
-            <Button>Add to List</Button>
-            <Button variant="outline">Rate</Button>
+            {isAuthenticated ? (
+              <>
+                <AddToListModal media={media} />
+                <Button variant="outline">Rate</Button>
+              </>
+            ) : (
+              <Button asChild>
+                <a href="/login?redirect=/media/${media.id}">
+                  Login to Add to List
+                </a>
+              </Button>
+            )}
           </div>
         </div>
       </div>
