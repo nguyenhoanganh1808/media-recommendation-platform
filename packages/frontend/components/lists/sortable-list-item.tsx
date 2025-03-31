@@ -4,7 +4,10 @@ import { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { removeFromList } from "@/lib/features/lists/listsSlice";
+import {
+  removeFromList,
+  updateListItemNotes,
+} from "@/lib/features/lists/listsSlice";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +31,7 @@ import {
 import Link from "next/link";
 import type { ListItem } from "@/lib/features/lists/listsSlice";
 import type { AppDispatch } from "@/lib/store";
+import { updateItemInList } from "@/lib/services/lists";
 
 interface SortableListItemProps {
   item: ListItem;
@@ -94,6 +98,24 @@ export function SortableListItem({ item }: SortableListItemProps) {
   const handleSaveNotes = async () => {
     // In a real app, you would dispatch an action to update the notes
     // For this demo, we'll just toggle the editing state
+    setIsEditing(true);
+    try {
+      await dispatch(
+        updateListItemNotes({
+          itemId: item.id,
+          notes: notes || "",
+        })
+      ).unwrap();
+      toast.success("Success", {
+        description: "Notes updated",
+      });
+    } catch (error) {
+      toast.error("Error", {
+        description:
+          error instanceof Error ? error.message : "Failed to update notes",
+      });
+    }
+
     setIsEditing(false);
     toast.success("Success", {
       description: "Notes updated",

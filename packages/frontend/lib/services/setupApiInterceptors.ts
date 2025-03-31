@@ -61,13 +61,13 @@ export const setupApiInterceptors = (
           }
 
           // Get new tokens
-          const tokens = await refreshAuthToken(refreshTokenValue);
+          const { data } = await refreshAuthToken(refreshTokenValue);
 
           // Update store with new tokens
-          dispatch(refreshTokenAction(tokens));
+          dispatch(refreshTokenAction(data));
 
           // Update the request with the new token
-          originalRequest.headers.Authorization = `Bearer ${tokens.accessToken}`;
+          originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
 
           // Retry the request
           return api(originalRequest);

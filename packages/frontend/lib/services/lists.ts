@@ -134,6 +134,24 @@ export const addItemToList = async (
   }
 };
 
+// Update item in list
+export const updateItemInList = async (
+  itemId: string,
+  notes?: string
+): Promise<ListItem> => {
+  try {
+    const response = await api.put(`/lists/items/${itemId}`, { notes });
+    return response.data.data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      throw new Error(
+        error.response?.data?.message || "Failed to update item in list"
+      );
+    }
+    throw error;
+  }
+};
+
 // Remove item from list
 export const removeItemFromList = async (itemId: string): Promise<void> => {
   try {

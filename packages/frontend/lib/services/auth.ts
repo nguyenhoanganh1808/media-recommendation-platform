@@ -19,7 +19,8 @@ interface AuthResponse {
   data: {
     user: {
       id: string;
-      name: string;
+      firstName: string;
+      lastName: string;
       email: string;
       username?: string;
       avatar?: string;
@@ -60,7 +61,10 @@ export const registerUser = async (
 
 export const refreshAuthToken = async (
   refreshToken: string
-): Promise<{ accessToken: string; refreshToken: string }> => {
+): Promise<{
+  data: { accessToken: string; refreshToken: string };
+  message: string;
+}> => {
   try {
     const response = await apiClient.post("/auth/refresh-token", {
       refreshToken,

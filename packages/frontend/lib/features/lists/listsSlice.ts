@@ -8,6 +8,7 @@ import {
   addItemToList,
   removeItemFromList,
   reorderList,
+  updateItemInList,
 } from "@/lib/services/lists";
 import type { RootState } from "@/lib/store";
 import type { MediaItem } from "@/lib/types/media.types";
@@ -183,6 +184,26 @@ export const addToList = createAsyncThunk(
   }
 );
 
+export const updateListItemNotes = createAsyncThunk(
+  "lists/updateListItemNotes",
+  async (
+    { itemId, notes }: { itemId: string; notes: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await updateItemInList(itemId, notes);
+      console.log("updateListItemNotes response: ", response);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error
+          ? error.message
+          : "Failed to update item notes in list"
+      );
+    }
+  }
+);
+
 export const removeFromList = createAsyncThunk(
   "lists/removeFromList",
   async (
@@ -337,6 +358,32 @@ const listsSlice = createSlice({
         state.error = null;
       })
       .addCase(addToList.rejected, (state, action) => {
+        state.status = "failed";
+        state.error = action.payload as string;
+      })
+
+      // Update item in list
+      .addCase(updateListItemNotes.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(updateListItemNotes.fulfilled, (state, action) => {
+        state.status = "succeeded";
+        console.log("action.payload: ", action.payload);
+        if (
+          state.currentList &&
+          state.currentList.id === action.payload.listId
+        ) {
+          const itemIndex = state.currentList.items.findIndex(
+            (item) => item.id === action.payload.id
+          );
+          if (itemIndex !== -1) {
+            state.currentList.items[itemIndex].notes = action.payload.notes;
+          }
+        }
+
+        state.error = null;
+      })
+      .addCase(updateListItemNotes.rejected, (state, action) => {
         state.status = "failed";
         state.error = action.payload as string;
       })
