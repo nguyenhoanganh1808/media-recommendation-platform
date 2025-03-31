@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { ListPlus, Search, Star, TrendingUp } from "lucide-react";
+import { ListPlus, TrendingUp, Sparkles } from "lucide-react";
 
 export default function DashboardPage() {
   const { isAuthenticated, user } = useSelector(
@@ -58,7 +58,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <TrendingUp className="mr-2 h-5 w-5" />
+              <Sparkles className="mr-2 h-5 w-5" />
               Recommendations
             </CardTitle>
             <CardDescription>Personalized for you</CardDescription>
@@ -67,15 +67,15 @@ export default function DashboardPage() {
             <p>Discover new media based on your preferences</p>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" disabled>
-              Coming Soon
+            <Button asChild>
+              <Link href="/recommendations">View Recommendations</Link>
             </Button>
           </CardFooter>
         </Card>
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Star className="mr-2 h-5 w-5" />
+              <TrendingUp className="mr-2 h-5 w-5" />
               Trending
             </CardTitle>
             <CardDescription>Popular right now</CardDescription>
