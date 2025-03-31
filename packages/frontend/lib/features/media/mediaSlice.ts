@@ -1,10 +1,48 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { fetchMedia } from "@/lib/services/media";
-import type {
-  MediaItem,
-  MediaFilters,
-  PaginationMeta,
-} from "@/lib/types/media.types";
+
+export type MediaType = "MOVIE" | "GAME" | "MANGA" | null;
+export type SortOption =
+  | "popularity"
+  | "releaseDate"
+  | "averageRating"
+  | "title";
+export type SortOrder = "asc" | "desc";
+
+export interface MediaFilters {
+  page: number;
+  limit: number;
+  type: MediaType;
+  genre: string | null;
+  search: string;
+  sortBy: SortOption;
+  sortOrder: SortOrder;
+}
+
+export interface MediaItem {
+  id: string;
+  title: string;
+  originalTitle?: string;
+  mediaType: MediaType;
+  coverImage: string;
+  releaseDate: string;
+  averageRating: number;
+  genres: Array<{
+    id: string;
+    genre: {
+      id: string;
+      name: string;
+    };
+  }>;
+  popularity: number;
+}
+
+export interface PaginationMeta {
+  currentPage: number;
+  totalPages: number;
+  totalItems: number;
+  itemsPerPage: number;
+}
 
 interface MediaState {
   items: MediaItem[];

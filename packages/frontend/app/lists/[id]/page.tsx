@@ -128,14 +128,8 @@ export default function ListDetailPage() {
       // Create a new array with the updated order
       const newItems = arrayMove(list.items, oldIndex, newIndex);
 
-      // Get the new order of item IDs
-      const newItemIds = newItems.map((item) => ({
-        id: item.id,
-        order: item.order,
-      }));
-
       // Dispatch the reorder action
-      dispatch(reorderListItems({ listId, items: newItemIds }));
+      dispatch(reorderListItems({ listId, items: newItems }));
 
       toast.success("Success", {
         description: "List order updated",

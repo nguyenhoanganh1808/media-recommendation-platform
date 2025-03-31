@@ -11,7 +11,7 @@ import {
   updateItemInList,
 } from "@/lib/services/lists";
 import type { RootState } from "@/lib/store";
-import type { MediaItem } from "@/lib/types/media.types";
+import type { MediaItem } from "../media/mediaSlice";
 
 export interface ListItem {
   id: string;

@@ -31,7 +31,6 @@ import {
 import Link from "next/link";
 import type { ListItem } from "@/lib/features/lists/listsSlice";
 import type { AppDispatch } from "@/lib/store";
-import { updateItemInList } from "@/lib/services/lists";
 
 interface SortableListItemProps {
   item: ListItem;

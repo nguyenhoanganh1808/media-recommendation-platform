@@ -1,6 +1,10 @@
 import axios from "axios";
 import { api } from "./api";
-import { MediaFilters, MediaItem, PaginationMeta } from "../types/media.types";
+import {
+  MediaFilters,
+  MediaItem,
+  PaginationMeta,
+} from "@/lib/features/media/mediaSlice";
 
 interface MediaResponse {
   data: MediaItem[];
