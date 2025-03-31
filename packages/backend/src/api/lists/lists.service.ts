@@ -448,7 +448,7 @@ export const updateListItem = async (
     await clearCacheByPattern(`lists:public:${item.list.userId}`);
   }
 
-  return updateListItem;
+  return updatedItem;
 };
 
 export const getUserPublicLists = async (
