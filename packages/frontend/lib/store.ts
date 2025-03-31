@@ -3,6 +3,7 @@ import authReducer from "./features/auth/authSlice";
 import mediaReducer from "./features/media/mediaSlice";
 import userReducer from "./features/users/userSlice";
 import listsReducer from "./features/lists/listsSlice";
+import recommendationsReducer from "./features/recommendations/recommendationsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
     media: mediaReducer,
     users: userReducer,
     lists: listsReducer,
+    recommendations: recommendationsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

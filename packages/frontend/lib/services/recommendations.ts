@@ -1,28 +1,33 @@
 import axios from "axios";
-import type { MediaItem } from "@/lib/features/media/mediaSlice";
 import type { UserPreferences } from "@/lib/features/recommendations/recommendationsSlice";
 import { api } from "./api";
+import { MediaItem } from "../features/media/mediaSlice";
+
+interface RecommendationResponse {
+  data: MediaItem[];
+  success: boolean;
+  message: string | null;
+}
 
 // Fetch personalized recommendations
-export const fetchPersonalizedRecommendations = async (): Promise<
-  MediaItem[]
-> => {
-  try {
-    const response = await api.get("/recommendations");
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message ||
-          "Failed to fetch personalized recommendations"
-      );
+export const fetchPersonalizedRecommendations =
+  async (): Promise<RecommendationResponse> => {
+    try {
+      const response = await api.get("/recommendations");
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        throw new Error(
+          error.response?.data?.message ||
+            "Failed to fetch personalized recommendations"
+        );
+      }
+      throw error;
     }
-    throw error;
-  }
-};
+  };
 
 // Fetch trending media
-export const fetchTrendingMedia = async (): Promise<MediaItem[]> => {
+export const fetchTrendingMedia = async (): Promise<RecommendationResponse> => {
   try {
     const response = await api.get("/recommendations/trending");
     return response.data;
@@ -39,7 +44,7 @@ export const fetchTrendingMedia = async (): Promise<MediaItem[]> => {
 // Fetch similar media
 export const fetchSimilarMedia = async (
   mediaId: string
-): Promise<MediaItem[]> => {
+): Promise<RecommendationResponse> => {
   try {
     const response = await api.get(`/recommendations/media/${mediaId}`);
     return response.data;
