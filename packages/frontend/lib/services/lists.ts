@@ -169,10 +169,10 @@ export const removeItemFromList = async (itemId: string): Promise<void> => {
 // Reorder list items
 export const reorderList = async (
   listId: string,
-  itemIds: string[]
+  items: { id: string; order: number }[]
 ): Promise<void> => {
   try {
-    await api.put(`/lists/${listId}/reorder`, { itemIds });
+    await api.put(`/lists/${listId}/reorder`, { items });
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(

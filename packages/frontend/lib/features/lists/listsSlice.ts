@@ -226,12 +226,15 @@ export const removeFromList = createAsyncThunk(
 export const reorderListItems = createAsyncThunk(
   "lists/reorderItems",
   async (
-    { listId, itemIds }: { listId: string; itemIds: string[] },
+    {
+      listId,
+      items,
+    }: { listId: string; items: { id: string; order: number }[] },
     { rejectWithValue }
   ) => {
     try {
-      await reorderList(listId, itemIds);
-      return { listId, itemIds };
+      await reorderList(listId, items);
+      return { listId, items };
     } catch (error) {
       return rejectWithValue(
         error instanceof Error ? error.message : "Failed to reorder list"
@@ -431,9 +434,9 @@ const listsSlice = createSlice({
           const itemMap = new Map(
             state.currentList.items.map((item) => [item.id, item])
           );
-          state.currentList.items = action.payload.itemIds
-            .map((id, index) => {
-              const item = itemMap.get(id);
+          state.currentList.items = action.payload.items
+            .map((it, index) => {
+              const item = itemMap.get(it.id);
               if (item) {
                 return { ...item, order: index };
               }

@@ -96,8 +96,6 @@ export function SortableListItem({ item }: SortableListItemProps) {
   };
 
   const handleSaveNotes = async () => {
-    // In a real app, you would dispatch an action to update the notes
-    // For this demo, we'll just toggle the editing state
     setIsEditing(true);
     try {
       await dispatch(
