@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Film, User, LogOut, ListIcon } from "lucide-react";
+import { Film, User, LogOut, ListIcon, Sparkles } from "lucide-react";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -59,6 +59,20 @@ export default function Navbar() {
                 Browse
               </Link>
               <Link
+                href="/recommendations"
+                className={
+                  pathname === "/recommendations" ||
+                  pathname.startsWith("/recommendations/")
+                    ? "text-primary font-medium"
+                    : "text-foreground/60 hover:text-foreground"
+                }
+              >
+                <span className="flex items-center">
+                  <Sparkles className="h-4 w-4 mr-1" />
+                  Recommendations
+                </span>
+              </Link>
+              <Link
                 href="/lists"
                 className={
                   pathname === "/lists" || pathname.startsWith("/lists/")
@@ -71,6 +85,7 @@ export default function Navbar() {
                   My Lists
                 </span>
               </Link>
+
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -80,10 +95,10 @@ export default function Navbar() {
                     <Avatar className="h-8 w-8">
                       <AvatarImage
                         src={user?.avatar || ""}
-                        alt={user?.name || "User"}
+                        alt={user?.firstName || "User"}
                       />
                       <AvatarFallback>
-                        {user?.name?.charAt(0) || "U"}
+                        {user?.firstName?.charAt(0) || "U"}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
