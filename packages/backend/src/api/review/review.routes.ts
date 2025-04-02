@@ -1,7 +1,11 @@
 import { Router } from "express";
 import reviewController from "./review.controller";
 import { validate } from "../../middlewares/validation.middleware";
-import { authenticate, restrictTo } from "../../middlewares/auth.middleware";
+import {
+  authenticate,
+  checkOwnership,
+  restrictTo,
+} from "../../middlewares/auth.middleware";
 import { Role } from "@prisma/client";
 import {
   createReviewValidation,
@@ -59,8 +63,8 @@ router.put(
 // Delete a review (authenticated)
 router.delete(
   "/:id",
-  restrictTo(Role.ADMIN, Role.MODERATOR),
   authenticate,
+  checkOwnership("mediaReview"),
   validate(deleteReviewValidation),
   reviewController.deleteReview
 );

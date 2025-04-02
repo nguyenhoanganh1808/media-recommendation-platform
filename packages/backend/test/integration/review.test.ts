@@ -215,6 +215,7 @@ describe("Review Routes", () => {
       testUsers.another = anotherUser;
 
       const token = generateAccessToken(anotherUser);
+      testUsers.another.token = token;
 
       const updateData = {
         content: "This update should fail",
@@ -222,7 +223,7 @@ describe("Review Routes", () => {
 
       const response = await request(app)
         .put(`/api/reviews/${testReview.id}`)
-        .set("Authorization", `Bearer ${token}`)
+        .set("Authorization", `Bearer ${testUsers.another.token}`)
         .send(updateData);
 
       expect(response.status).toBe(403);
@@ -278,7 +279,7 @@ describe("Review Routes", () => {
     it("should not allow non-authors to delete a review", async () => {
       const response = await request(app)
         .delete(`/api/reviews/${testReview.id}`)
-        .set("Authorization", `Bearer ${adminUserToken}`);
+        .set("Authorization", `Bearer ${testUsers.another.token}`);
 
       expect(response.status).toBe(403);
       expect(response.body.success).toBe(false);

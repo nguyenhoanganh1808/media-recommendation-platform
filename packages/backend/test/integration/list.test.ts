@@ -154,7 +154,6 @@ describe("Lists API Integration Tests", () => {
       where: { OR: [{ id: mediaId }, { id: secondMediaId }] },
     });
     await prisma.user.deleteMany({ where: { id: testUser.id } });
-    await prisma.$disconnect();
   });
 
   describe("Create list", () => {
