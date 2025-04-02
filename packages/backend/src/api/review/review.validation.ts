@@ -1,56 +1,54 @@
-import { body, param, query } from "express-validator";
+import { body, param } from "express-validator";
 
-export const reviewValidators = {
-  create: [
-    body("mediaId").isUUID().withMessage("Valid media ID is required"),
-    body("content")
-      .isString()
-      .notEmpty()
-      .withMessage("Review content is required")
-      .isLength({ min: 10, max: 5000 })
-      .withMessage("Review content must be between 10 and 5000 characters"),
-  ],
+export const createReviewValidation = [
+  body("mediaId")
+    .notEmpty()
+    .withMessage("Media ID is required")
+    .isUUID()
+    .withMessage("Invalid media ID format"),
+  body("content")
+    .notEmpty()
+    .withMessage("Review content is required")
+    .isString()
+    .withMessage("Review content must be a string")
+    .isLength({ min: 10, max: 5000 })
+    .withMessage("Review content must be between 10 and 5000 characters"),
+  body("isVisible")
+    .optional()
+    .isBoolean()
+    .withMessage("isVisible must be a boolean value"),
+];
 
-  update: [
-    param("id").isUUID().withMessage("Invalid review ID"),
-    body("content")
-      .isString()
-      .notEmpty()
-      .withMessage("Review content is required")
-      .isLength({ min: 10, max: 5000 })
-      .withMessage("Review content must be between 10 and 5000 characters"),
-  ],
+export const updateReviewValidation = [
+  param("id")
+    .notEmpty()
+    .withMessage("Review ID is required")
+    .isUUID()
+    .withMessage("Invalid review ID format"),
+  body("content")
+    .optional()
+    .isString()
+    .withMessage("Review content must be a string")
+    .isLength({ min: 10, max: 5000 })
+    .withMessage("Review content must be between 10 and 5000 characters"),
+  body("isVisible")
+    .optional()
+    .isBoolean()
+    .withMessage("isVisible must be a boolean value"),
+];
 
-  toggleVisibility: [
-    param("id").isUUID().withMessage("Invalid review ID"),
-    body("isVisible")
-      .isBoolean()
-      .withMessage("isVisible must be a boolean value"),
-  ],
+export const deleteReviewValidation = [
+  param("id")
+    .notEmpty()
+    .withMessage("Review ID is required")
+    .isUUID()
+    .withMessage("Invalid review ID format"),
+];
 
-  getById: [param("id").isUUID().withMessage("Invalid review ID")],
-
-  getByMedia: [
-    param("mediaId").isUUID().withMessage("Invalid media ID"),
-    query("page")
-      .optional()
-      .isInt({ min: 1 })
-      .withMessage("Page must be a positive integer"),
-    query("limit")
-      .optional()
-      .isInt({ min: 1, max: 100 })
-      .withMessage("Limit must be between 1 and 100"),
-  ],
-
-  getByUser: [
-    param("userId").isUUID().withMessage("Invalid user ID"),
-    query("page")
-      .optional()
-      .isInt({ min: 1 })
-      .withMessage("Page must be a positive integer"),
-    query("limit")
-      .optional()
-      .isInt({ min: 1, max: 100 })
-      .withMessage("Limit must be between 1 and 100"),
-  ],
-};
+export const likeReviewValidation = [
+  param("id")
+    .notEmpty()
+    .withMessage("Review ID is required")
+    .isUUID()
+    .withMessage("Invalid review ID format"),
+];
