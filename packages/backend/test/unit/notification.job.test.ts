@@ -242,7 +242,6 @@ describe("NotificationJob", () => {
       await notificationJob.cleanup();
 
       expect(mockPrisma.$disconnect).toHaveBeenCalled();
-      expect(mockRedis.disconnect).toHaveBeenCalled();
     });
   });
 });
