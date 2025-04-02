@@ -72,7 +72,7 @@ router.post(
   reviewController.likeReview
 );
 
-// Admin route to get all reviews (including hidden) - additional admin panel functionality
+// Admin route to get all reviews (including hidden)
 router.get(
   "/admin/all",
   authenticate,

@@ -24,6 +24,8 @@ import listRoutes from "./api/lists/lists.routes";
 import recommendationRoutes from "./api/recommendations/recommendations.routes";
 import notificationRoutes from "./api/notifications/notifications.routes";
 import genreRoutes from "./api/genres/genres.routes";
+import reviewRoutes from "./api/review/review.routes";
+
 import { setupSwaggerRoutes } from "../scripts/generateSwagger";
 
 // Initialize Express application
@@ -104,6 +106,7 @@ app.use(`${API_PREFIX}/lists`, listRoutes);
 app.use(`${API_PREFIX}/recommendations`, recommendationRoutes);
 app.use(`${API_PREFIX}/notifications`, notificationRoutes);
 app.use(`${API_PREFIX}/genres`, genreRoutes);
+app.use(`${API_PREFIX}/review`, reviewRoutes);
 
 // 404 handler
 app.all("*", (req: Request, res: Response) => {
