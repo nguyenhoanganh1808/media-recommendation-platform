@@ -3,12 +3,6 @@ import app from "../../src/app";
 import { prisma } from "../../src/config/database";
 import { generateAccessToken } from "../../src/utils/jwt";
 
-// Clear the database before tests
-beforeAll(async () => {
-  await prisma.follow.deleteMany();
-  await prisma.user.deleteMany();
-});
-
 describe("User API", () => {
   let userId: string;
   let adminId: string;
@@ -34,8 +28,8 @@ describe("User API", () => {
 
     const admin = await prisma.user.create({
       data: {
-        email: "admin@example.com",
-        username: "admin",
+        email: "adminUser@example.com",
+        username: "adminTestUser",
         password: "hashedpassword",
         isActive: true,
         role: "ADMIN",
@@ -50,6 +44,12 @@ describe("User API", () => {
     // Only delete users created in this test
     await prisma.user.deleteMany({
       where: { id: { in: createdUserIds } },
+    });
+    await prisma.follow.deleteMany({
+      where: {
+        followerId: { in: createdUserIds },
+        followingId: { in: createdUserIds },
+      },
     });
   });
 
@@ -134,8 +134,8 @@ describe("User API", () => {
       // Create a second user and track it
       const user2 = await prisma.user.create({
         data: {
-          email: "user2@example.com",
-          username: "user2",
+          email: "userTest2@example.com",
+          username: "userTest2",
           password: "hashedpassword",
           isActive: true,
           role: "USER",
