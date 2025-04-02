@@ -173,6 +173,10 @@ export class ReviewService {
       },
     });
 
+    if (!review) {
+      throw new AppError("Review not found", 404, "REVIEW_NOT_FOUND");
+    }
+
     return review;
   }
 
