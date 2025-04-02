@@ -300,7 +300,7 @@ describe("Review Routes", () => {
       // Delete it
       const response = await request(app)
         .delete(`/api/reviews/${newReview.id}`)
-        .set("Authorization", `Bearer ${regularUserToken}`);
+        .set("Authorization", `Bearer ${testUsers.another.token}`);
 
       expect(response.status).toBe(200);
       expect(response.body.success).toBe(true);
@@ -345,8 +345,10 @@ describe("Review Routes", () => {
     });
 
     it("should return all reviews including hidden ones for admins", async () => {
+      // Create a new review to test
+
       const response = await request(app)
-        .get("/api/reviews/admin/all")
+        .get("/api/reviews/admin/all?limit=100000")
         .set("Authorization", `Bearer ${adminUserToken}`);
 
       expect(response.status).toBe(200);
