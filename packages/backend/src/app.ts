@@ -106,7 +106,7 @@ app.use(`${API_PREFIX}/lists`, listRoutes);
 app.use(`${API_PREFIX}/recommendations`, recommendationRoutes);
 app.use(`${API_PREFIX}/notifications`, notificationRoutes);
 app.use(`${API_PREFIX}/genres`, genreRoutes);
-app.use(`${API_PREFIX}/review`, reviewRoutes);
+app.use(`${API_PREFIX}/reviews`, reviewRoutes);
 
 // 404 handler
 app.all("*", (req: Request, res: Response) => {
