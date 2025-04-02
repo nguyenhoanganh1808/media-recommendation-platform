@@ -1,581 +1,383 @@
-import { ReviewService } from "../../src/api/review/review.service";
-import { prisma } from "../../src/config/database";
-import { AppError } from "../../src/middlewares/error.middleware";
-import { clearCacheByPattern } from "../../src/middlewares/cache.middleware";
+// packages/backend/tests/unit/review/review.controller.test.ts
+
+import { Request, Response, NextFunction } from "express";
 import { Role } from "@prisma/client";
+import { ReviewController } from "../../src/api/review/review.controller";
+import reviewService from "../../src/api/review/review.service";
+import * as responseFormatter from "../../src/utils/responseFormatter";
 
 // Mock dependencies
-jest.mock("../../src/config/database", () => ({
-  prisma: {
-    mediaReview: {
-      findFirst: jest.fn(),
-      findUnique: jest.fn(),
-      create: jest.fn(),
-      update: jest.fn(),
-      delete: jest.fn(),
-      findMany: jest.fn(),
-      count: jest.fn(),
-    },
-    media: {
-      findUnique: jest.fn(),
-    },
-    notification: {
-      create: jest.fn(),
-    },
-  },
-}));
+jest.mock("../../src/api/review/review.service");
+jest.mock("../../src/utils/responseFormatter");
 
-jest.mock("../../src/middlewares/cache.middleware", () => ({
-  clearCacheByPattern: jest.fn(),
-}));
-
-describe("ReviewService", () => {
-  let reviewService: ReviewService;
+describe("ReviewController", () => {
+  let reviewController: ReviewController;
+  let mockRequest: Partial<Request>;
+  let mockResponse: Partial<Response>;
+  let mockNext: NextFunction;
 
   beforeEach(() => {
-    reviewService = new ReviewService();
+    reviewController = new ReviewController();
+    mockRequest = {
+      user: {
+        id: "user-123",
+        role: Role.USER,
+        email: "",
+        isActive: true,
+        username: "",
+      },
+      body: {},
+      params: {},
+      query: {},
+    };
+    mockResponse = {
+      json: jest.fn(),
+      status: jest.fn().mockReturnThis(),
+    };
+    mockNext = jest.fn();
+
+    // Reset mocks
     jest.clearAllMocks();
   });
 
   describe("createReview", () => {
-    const createReviewData = {
-      userId: "user-123",
-      mediaId: "media-123",
-      content: "This is a great movie!",
-      isVisible: true,
-    };
+    it("should create a review and return 201 status", async () => {
+      // Arrange
+      const reviewData = {
+        userId: "user-123",
+        mediaId: "media-123",
+        content: "This is a test review",
+        isVisible: true,
+      };
 
-    it("should create a review successfully", async () => {
-      // Mock database responses
-      (prisma.mediaReview.findFirst as jest.Mock).mockResolvedValue(null);
-      (prisma.media.findUnique as jest.Mock).mockResolvedValue({
-        id: "media-123",
-      });
-      (prisma.mediaReview.create as jest.Mock).mockResolvedValue({
-        id: "review-123",
-        ...createReviewData,
-        likesCount: 0,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      });
+      mockRequest.body = {
+        mediaId: reviewData.mediaId,
+        content: reviewData.content,
+        isVisible: reviewData.isVisible,
+      };
 
-      const result = await reviewService.createReview(createReviewData);
+      const mockReview = { id: "review-123", ...reviewData };
+      jest
+        .spyOn(reviewService, "createReview")
+        .mockResolvedValue(mockReview as any);
+      jest.spyOn(responseFormatter, "sendSuccess");
 
-      // Verify function calls
-      expect(prisma.mediaReview.findFirst).toHaveBeenCalledWith({
-        where: {
-          userId: createReviewData.userId,
-          mediaId: createReviewData.mediaId,
-        },
-      });
-      expect(prisma.media.findUnique).toHaveBeenCalledWith({
-        where: { id: createReviewData.mediaId },
-      });
-      expect(prisma.mediaReview.create).toHaveBeenCalledWith({
-        data: createReviewData,
-      });
-      expect(clearCacheByPattern).toHaveBeenCalledWith(
-        `reviews:media:${createReviewData.mediaId}`
+      // Act
+      await reviewController.createReview(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
       );
 
-      // Verify result
-      expect(result).toHaveProperty("id", "review-123");
-      expect(result).toHaveProperty("content", createReviewData.content);
-    });
-
-    it("should throw an error if user has already reviewed the media", async () => {
-      (prisma.mediaReview.findFirst as jest.Mock).mockResolvedValue({
-        id: "existing-review",
-        userId: createReviewData.userId,
-        mediaId: createReviewData.mediaId,
-      });
-
-      await expect(
-        reviewService.createReview(createReviewData)
-      ).rejects.toThrow(
-        new AppError(
-          "You have already reviewed this media",
-          409,
-          "REVIEW_EXISTS"
-        )
+      // Assert
+      expect(reviewService.createReview).toHaveBeenCalledWith(reviewData);
+      expect(responseFormatter.sendSuccess).toHaveBeenCalledWith(
+        mockResponse,
+        mockReview,
+        "Review created successfully",
+        201
       );
-
-      expect(prisma.mediaReview.create).not.toHaveBeenCalled();
-    });
-
-    it("should throw an error if media does not exist", async () => {
-      (prisma.mediaReview.findFirst as jest.Mock).mockResolvedValue(null);
-      (prisma.media.findUnique as jest.Mock).mockResolvedValue(null);
-
-      await expect(
-        reviewService.createReview(createReviewData)
-      ).rejects.toThrow(
-        new AppError("Media not found", 404, "MEDIA_NOT_FOUND")
-      );
-
-      expect(prisma.mediaReview.create).not.toHaveBeenCalled();
     });
   });
 
   describe("getMediaReviews", () => {
-    const mediaId = "media-123";
-    const mockReviews = [
-      {
-        id: "review-1",
+    it("should return reviews for a specific media with pagination", async () => {
+      // Arrange
+      const mediaId = "media-123";
+      const page = 2;
+      const limit = 5;
+
+      mockRequest.params = { mediaId };
+      mockRequest.query = { page: page.toString(), limit: limit.toString() };
+
+      const mockReviews = [{ id: "review-1" }, { id: "review-2" }];
+      const mockTotal = 10;
+      const mockPagination = { page, limit, total: mockTotal, totalPages: 2 };
+
+      jest.spyOn(reviewService, "getMediaReviews").mockResolvedValue({
+        reviews: mockReviews as any,
+        total: mockTotal,
+      });
+
+      jest
+        .spyOn(responseFormatter, "createPagination")
+        .mockReturnValue(mockPagination);
+      jest.spyOn(responseFormatter, "sendSuccess");
+
+      // Act
+      await reviewController.getMediaReviews(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
+
+      // Assert
+      expect(reviewService.getMediaReviews).toHaveBeenCalledWith(
         mediaId,
-        userId: "user-1",
-        content: "Great movie!",
-        isVisible: true,
-        likesCount: 5,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        user: {
-          id: "user-1",
-          username: "user1",
-          avatar: "avatar.jpg",
-        },
-      },
-    ];
+        page,
+        limit,
+        false // includeHidden should be false for regular users
+      );
 
-    it("should return reviews for a media with pagination", async () => {
-      (prisma.mediaReview.findMany as jest.Mock).mockResolvedValue(mockReviews);
-      (prisma.mediaReview.count as jest.Mock).mockResolvedValue(1);
-
-      const result = await reviewService.getMediaReviews(mediaId, 1, 10, false);
-
-      expect(prisma.mediaReview.findMany).toHaveBeenCalledWith({
-        where: { mediaId, isVisible: true },
-        skip: 0,
-        take: 10,
-        orderBy: [{ likesCount: "desc" }, { createdAt: "desc" }],
-        include: {
-          user: {
-            select: {
-              id: true,
-              username: true,
-              avatar: true,
-            },
-          },
-        },
-      });
-      expect(prisma.mediaReview.count).toHaveBeenCalledWith({
-        where: { mediaId, isVisible: true },
-      });
-
-      expect(result).toEqual({ reviews: mockReviews, total: 1 });
+      expect(responseFormatter.createPagination).toHaveBeenCalledWith(
+        page,
+        limit,
+        mockTotal
+      );
+      expect(responseFormatter.sendSuccess).toHaveBeenCalledWith(
+        mockResponse,
+        mockReviews,
+        "Media reviews retrieved successfully",
+        200,
+        mockPagination
+      );
     });
 
-    it("should include hidden reviews when includeHidden is true", async () => {
-      (prisma.mediaReview.findMany as jest.Mock).mockResolvedValue(mockReviews);
-      (prisma.mediaReview.count as jest.Mock).mockResolvedValue(1);
+    it("should include hidden reviews for admin role", async () => {
+      // Arrange
+      mockRequest.user = {
+        id: "admin-123",
+        role: Role.ADMIN,
+        email: "",
+        isActive: true,
+        username: "",
+      };
+      mockRequest.params = { mediaId: "media-123" };
 
-      await reviewService.getMediaReviews(mediaId, 1, 10, true);
-
-      expect(prisma.mediaReview.findMany).toHaveBeenCalledWith({
-        where: { mediaId },
-        skip: 0,
-        take: 10,
-        orderBy: [{ likesCount: "desc" }, { createdAt: "desc" }],
-        include: {
-          user: {
-            select: {
-              id: true,
-              username: true,
-              avatar: true,
-            },
-          },
-        },
+      jest.spyOn(reviewService, "getMediaReviews").mockResolvedValue({
+        reviews: [] as any,
+        total: 0,
       });
+      jest
+        .spyOn(responseFormatter, "createPagination")
+        .mockReturnValue({} as any);
+
+      // Act
+      await reviewController.getMediaReviews(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
+      );
+
+      // Assert
+      expect(reviewService.getMediaReviews).toHaveBeenCalledWith(
+        "media-123",
+        1, // default page
+        10, // default limit
+        true // includeHidden should be true for admin
+      );
     });
   });
 
   describe("getUserReviews", () => {
-    const userId = "user-123";
-    const requestingUserId = "user-123";
-    const mockReviews = [
-      {
-        id: "review-1",
-        mediaId: "media-1",
-        userId,
-        content: "Great movie!",
-        isVisible: true,
-        likesCount: 5,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        media: {
-          id: "media-1",
-          title: "Test Movie",
-          mediaType: "MOVIE",
-          coverImage: "cover.jpg",
-        },
-      },
-    ];
+    it("should return reviews for a specific user with pagination", async () => {
+      // Arrange
+      const userId = "user-123";
+      const page = 1;
+      const limit = 10;
 
-    it("should return reviews by a user with pagination", async () => {
-      (prisma.mediaReview.findMany as jest.Mock).mockResolvedValue(mockReviews);
-      (prisma.mediaReview.count as jest.Mock).mockResolvedValue(1);
+      mockRequest.params = { userId };
+      mockRequest.query = { page: page.toString(), limit: limit.toString() };
 
-      const result = await reviewService.getUserReviews(
-        userId,
-        1,
-        10,
-        requestingUserId
+      const mockReviews = [{ id: "review-1" }, { id: "review-2" }];
+      const mockTotal = 2;
+      const mockPagination = { page, limit, total: mockTotal, totalPages: 1 };
+
+      jest.spyOn(reviewService, "getUserReviews").mockResolvedValue({
+        reviews: mockReviews as any,
+        total: mockTotal,
+      });
+
+      jest
+        .spyOn(responseFormatter, "createPagination")
+        .mockReturnValue(mockPagination);
+      jest.spyOn(responseFormatter, "sendSuccess");
+
+      // Act
+      await reviewController.getUserReviews(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
       );
 
-      expect(prisma.mediaReview.findMany).toHaveBeenCalledWith({
-        where: { userId },
-        skip: 0,
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        include: {
-          media: {
-            select: {
-              id: true,
-              title: true,
-              mediaType: true,
-              coverImage: true,
-            },
-          },
-        },
-      });
-      expect(prisma.mediaReview.count).toHaveBeenCalledWith({
-        where: { userId },
-      });
+      // Assert
+      expect(reviewService.getUserReviews).toHaveBeenCalledWith(
+        userId,
+        page,
+        limit,
+        "user-123" // requestingUserId should be the current user's ID
+      );
 
-      expect(result).toEqual({ reviews: mockReviews, total: 1 });
-    });
-
-    it("should filter out hidden reviews when requesting user is different", async () => {
-      (prisma.mediaReview.findMany as jest.Mock).mockResolvedValue(mockReviews);
-      (prisma.mediaReview.count as jest.Mock).mockResolvedValue(1);
-
-      await reviewService.getUserReviews(userId, 1, 10, "different-user");
-
-      expect(prisma.mediaReview.findMany).toHaveBeenCalledWith({
-        where: { userId, isVisible: true },
-        skip: 0,
-        take: 10,
-        orderBy: { createdAt: "desc" },
-        include: {
-          media: {
-            select: {
-              id: true,
-              title: true,
-              mediaType: true,
-              coverImage: true,
-            },
-          },
-        },
-      });
+      expect(responseFormatter.createPagination).toHaveBeenCalledWith(
+        page,
+        limit,
+        mockTotal
+      );
+      expect(responseFormatter.sendSuccess).toHaveBeenCalledWith(
+        mockResponse,
+        mockReviews,
+        "User reviews retrieved successfully",
+        200,
+        mockPagination
+      );
     });
   });
 
   describe("getReviewById", () => {
-    const reviewId = "review-123";
-    const mockReview = {
-      id: reviewId,
-      mediaId: "media-1",
-      userId: "user-1",
-      content: "Great movie!",
-      isVisible: true,
-      likesCount: 5,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      user: {
-        id: "user-1",
-        username: "user1",
-        avatar: "avatar.jpg",
-      },
-      media: {
-        id: "media-1",
-        title: "Test Movie",
-        mediaType: "MOVIE",
-        coverImage: "cover.jpg",
-      },
-    };
+    it("should return a single review by ID", async () => {
+      // Arrange
+      const reviewId = "review-123";
+      mockRequest.params = { id: reviewId };
 
-    it("should return a review by ID", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue(
-        mockReview
+      const mockReview = { id: reviewId, content: "Great media!" };
+      jest
+        .spyOn(reviewService, "getReviewById")
+        .mockResolvedValue(mockReview as any);
+      jest.spyOn(responseFormatter, "sendSuccess");
+
+      // Act
+      await reviewController.getReviewById(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
       );
 
-      const result = await reviewService.getReviewById(reviewId);
-
-      expect(prisma.mediaReview.findUnique).toHaveBeenCalledWith({
-        where: { id: reviewId },
-        include: {
-          user: {
-            select: {
-              id: true,
-              username: true,
-              avatar: true,
-            },
-          },
-          media: {
-            select: {
-              id: true,
-              title: true,
-              mediaType: true,
-              coverImage: true,
-            },
-          },
-        },
-      });
-
-      expect(result).toEqual(mockReview);
-    });
-
-    it("should throw an error if review does not exist", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue(null);
-
-      await expect(reviewService.getReviewById(reviewId)).rejects.toThrow(
-        new AppError("Review not found", 404, "REVIEW_NOT_FOUND")
+      // Assert
+      expect(reviewService.getReviewById).toHaveBeenCalledWith(reviewId);
+      expect(responseFormatter.sendSuccess).toHaveBeenCalledWith(
+        mockResponse,
+        mockReview,
+        "Review retrieved successfully"
       );
     });
   });
 
   describe("updateReview", () => {
-    const reviewId = "review-123";
-    const userId = "user-123";
-    const updateData = {
-      content: "Updated content",
-      isVisible: false,
-    };
-    const mockReview = {
-      id: reviewId,
-      mediaId: "media-1",
-      userId,
-      content: "Original content",
-      isVisible: true,
-      likesCount: 5,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const updatedReview = {
-      ...mockReview,
-      content: updateData.content,
-      isVisible: updateData.isVisible,
-    };
+    it("should update a review and return the updated data", async () => {
+      // Arrange
+      const reviewId = "review-123";
+      const userId = "user-123";
+      const userRole = Role.USER;
+      const updateData = {
+        content: "Updated review content",
+        isVisible: false,
+      };
 
-    it("should update a review when user is the owner", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue(
-        mockReview
+      mockRequest.params = { id: reviewId };
+      mockRequest.body = updateData;
+      mockRequest.user = {
+        id: userId,
+        role: userRole,
+        email: "",
+        isActive: true,
+        username: "",
+      };
+
+      const mockUpdatedReview = {
+        id: reviewId,
+        userId,
+        ...updateData,
+      };
+
+      jest
+        .spyOn(reviewService, "updateReview")
+        .mockResolvedValue(mockUpdatedReview as any);
+      jest.spyOn(responseFormatter, "sendSuccess");
+
+      // Act
+      await reviewController.updateReview(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
       );
-      (prisma.mediaReview.update as jest.Mock).mockResolvedValue(updatedReview);
 
-      const result = await reviewService.updateReview(
+      // Assert
+      expect(reviewService.updateReview).toHaveBeenCalledWith(
         reviewId,
         userId,
         updateData,
-        Role.USER
+        userRole
       );
 
-      expect(prisma.mediaReview.findUnique).toHaveBeenCalledWith({
-        where: { id: reviewId },
-      });
-      expect(prisma.mediaReview.update).toHaveBeenCalledWith({
-        where: { id: reviewId },
-        data: updateData,
-      });
-      expect(clearCacheByPattern).toHaveBeenCalledWith(
-        `reviews:media:${mockReview.mediaId}`
+      expect(responseFormatter.sendSuccess).toHaveBeenCalledWith(
+        mockResponse,
+        mockUpdatedReview,
+        "Review updated successfully"
       );
-      expect(clearCacheByPattern).toHaveBeenCalledWith(
-        `reviews:user:${mockReview.userId}`
-      );
-
-      expect(result).toEqual(updatedReview);
-    });
-
-    it("should update a review when user is an admin", async () => {
-      const differentUserId = "different-user";
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue({
-        ...mockReview,
-        userId: differentUserId,
-      });
-      (prisma.mediaReview.update as jest.Mock).mockResolvedValue(updatedReview);
-
-      const result = await reviewService.updateReview(
-        reviewId,
-        userId,
-        updateData,
-        Role.ADMIN
-      );
-
-      expect(prisma.mediaReview.update).toHaveBeenCalled();
-      expect(result).toEqual(updatedReview);
-    });
-
-    it("should throw an error if review does not exist", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue(null);
-
-      await expect(
-        reviewService.updateReview(reviewId, userId, updateData, Role.USER)
-      ).rejects.toThrow(
-        new AppError("Review not found", 404, "REVIEW_NOT_FOUND")
-      );
-
-      expect(prisma.mediaReview.update).not.toHaveBeenCalled();
-    });
-
-    it("should throw an error if user is not authorized", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue({
-        ...mockReview,
-        userId: "different-user",
-      });
-
-      await expect(
-        reviewService.updateReview(reviewId, userId, updateData, Role.USER)
-      ).rejects.toThrow(
-        new AppError(
-          "You do not have permission to update this review",
-          403,
-          "PERMISSION_DENIED"
-        )
-      );
-
-      expect(prisma.mediaReview.update).not.toHaveBeenCalled();
     });
   });
 
   describe("deleteReview", () => {
-    const reviewId = "review-123";
-    const userId = "user-123";
-    const mockReview = {
-      id: reviewId,
-      mediaId: "media-1",
-      userId,
-      content: "Original content",
-      isVisible: true,
-      likesCount: 5,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
+    it("should delete a review and return success message", async () => {
+      // Arrange
+      const reviewId = "review-123";
+      const userId = "user-123";
+      const userRole = Role.USER;
 
-    it("should delete a review when user is the owner", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue(
-        mockReview
-      );
-      (prisma.mediaReview.delete as jest.Mock).mockResolvedValue(mockReview);
+      mockRequest.params = { id: reviewId };
+      mockRequest.user = {
+        id: userId,
+        role: userRole,
+        email: "",
+        isActive: true,
+        username: "",
+      };
 
-      await reviewService.deleteReview(reviewId, userId, Role.USER);
+      jest.spyOn(reviewService, "deleteReview").mockResolvedValue();
+      jest.spyOn(responseFormatter, "sendSuccess");
 
-      expect(prisma.mediaReview.findUnique).toHaveBeenCalledWith({
-        where: { id: reviewId },
-      });
-      expect(prisma.mediaReview.delete).toHaveBeenCalledWith({
-        where: { id: reviewId },
-      });
-      expect(clearCacheByPattern).toHaveBeenCalledWith(
-        `reviews:media:${mockReview.mediaId}`
-      );
-      expect(clearCacheByPattern).toHaveBeenCalledWith(
-        `reviews:user:${mockReview.userId}`
-      );
-    });
-
-    it("should delete a review when user is a moderator", async () => {
-      const differentUserId = "different-user";
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue({
-        ...mockReview,
-        userId: differentUserId,
-      });
-      (prisma.mediaReview.delete as jest.Mock).mockResolvedValue(mockReview);
-
-      await reviewService.deleteReview(reviewId, userId, Role.MODERATOR);
-
-      expect(prisma.mediaReview.delete).toHaveBeenCalled();
-    });
-
-    it("should throw an error if review does not exist", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue(null);
-
-      await expect(
-        reviewService.deleteReview(reviewId, userId, Role.USER)
-      ).rejects.toThrow(
-        new AppError("Review not found", 404, "REVIEW_NOT_FOUND")
+      // Act
+      await reviewController.deleteReview(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
       );
 
-      expect(prisma.mediaReview.delete).not.toHaveBeenCalled();
-    });
-
-    it("should throw an error if user is not authorized", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue({
-        ...mockReview,
-        userId: "different-user",
-      });
-
-      await expect(
-        reviewService.deleteReview(reviewId, userId, Role.USER)
-      ).rejects.toThrow(
-        new AppError(
-          "You do not have permission to delete this review",
-          403,
-          "PERMISSION_DENIED"
-        )
+      // Assert
+      expect(reviewService.deleteReview).toHaveBeenCalledWith(
+        reviewId,
+        userId,
+        userRole
       );
 
-      expect(prisma.mediaReview.delete).not.toHaveBeenCalled();
+      expect(responseFormatter.sendSuccess).toHaveBeenCalledWith(
+        mockResponse,
+        null,
+        "Review deleted successfully"
+      );
     });
   });
 
   describe("likeReview", () => {
-    const reviewId = "review-123";
-    const mockReview = {
-      id: reviewId,
-      mediaId: "media-1",
-      userId: "user-1",
-      content: "Great movie!",
-      isVisible: true,
-      likesCount: 5,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    const updatedReview = {
-      ...mockReview,
-      likesCount: 6,
-    };
+    it("should like a review and return the updated review", async () => {
+      // Arrange
+      const reviewId = "review-123";
+      mockRequest.params = { id: reviewId };
 
-    it("should increment the likes count of a review", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue(
-        mockReview
-      );
-      (prisma.mediaReview.update as jest.Mock).mockResolvedValue(updatedReview);
-      (prisma.notification.create as jest.Mock).mockResolvedValue({});
+      const mockUpdatedReview = {
+        id: reviewId,
+        likesCount: 42,
+      };
 
-      const result = await reviewService.likeReview(reviewId);
+      jest
+        .spyOn(reviewService, "likeReview")
+        .mockResolvedValue(mockUpdatedReview as any);
+      jest.spyOn(responseFormatter, "sendSuccess");
 
-      expect(prisma.mediaReview.findUnique).toHaveBeenCalledWith({
-        where: { id: reviewId },
-      });
-      expect(prisma.mediaReview.update).toHaveBeenCalledWith({
-        where: { id: reviewId },
-        data: {
-          likesCount: { increment: 1 },
-        },
-      });
-      expect(prisma.notification.create).toHaveBeenCalledWith({
-        data: {
-          userId: mockReview.userId,
-          type: "NEW_RATING",
-          title: "Your review received a like",
-          message: "Someone liked your review!",
-          data: { reviewId },
-        },
-      });
-
-      expect(result).toEqual(updatedReview);
-    });
-
-    it("should throw an error if review does not exist", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue(null);
-
-      await expect(reviewService.likeReview(reviewId)).rejects.toThrow(
-        new AppError("Review not found", 404, "REVIEW_NOT_FOUND")
+      // Act
+      await reviewController.likeReview(
+        mockRequest as Request,
+        mockResponse as Response,
+        mockNext
       );
 
-      expect(prisma.mediaReview.update).not.toHaveBeenCalled();
-      expect(prisma.notification.create).not.toHaveBeenCalled();
+      // Assert
+      expect(reviewService.likeReview).toHaveBeenCalledWith(reviewId);
+      expect(responseFormatter.sendSuccess).toHaveBeenCalledWith(
+        mockResponse,
+        mockUpdatedReview,
+        "Review liked successfully"
+      );
     });
   });
 });

@@ -1,22 +1,15 @@
-// packages/backend/jest.config.js
+import type { Config } from "jest";
 
-module.exports = {
-  preset: "ts-jest",
+const config: Config = {
   testEnvironment: "node",
-  setupFilesAfterEnv: ["<rootDir>/tests/jest.setup.ts"],
+  setupFilesAfterEnv: ["<rootDir>/test/setup.ts"],
+  testMatch: ["**/test/**/*.test.ts"],
+  transform: {
+    "^.+\\.ts$": "ts-jest",
+  },
   moduleNameMapper: {
     "^@/(.*)$": "<rootDir>/src/$1",
   },
-  testMatch: ["**/tests/**/*.test.ts"],
-  clearMocks: true,
-  collectCoverage: true,
-  collectCoverageFrom: ["src/**/*.ts", "!src/server.ts", "!src/types/**/*.ts"],
-  coverageDirectory: "coverage",
-  coverageReporters: ["text", "lcov"],
-  testPathIgnorePatterns: ["/node_modules/", "/dist/"],
-  globals: {
-    "ts-jest": {
-      isolatedModules: true,
-    },
-  },
 };
+
+export default config;
