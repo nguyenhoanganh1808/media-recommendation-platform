@@ -14,6 +14,7 @@ interface MediaCarouselProps {
   isLoading: boolean;
   error?: string | null;
   emptyMessage?: string;
+  viewAllHref?: string;
 }
 
 export function MediaCarousel({
@@ -22,6 +23,7 @@ export function MediaCarousel({
   isLoading,
   error,
   emptyMessage,
+  viewAllHref,
 }: MediaCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
@@ -59,6 +61,11 @@ export function MediaCarousel({
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">{title}</h2>
         <div className="flex space-x-2">
+          {viewAllHref && (
+            <Button variant="link" asChild className="mr-2">
+              <a href={viewAllHref}>View All</a>
+            </Button>
+          )}
           <Button
             variant="outline"
             size="icon"

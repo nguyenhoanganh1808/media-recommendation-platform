@@ -3,31 +3,45 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { fetchMediaDetails } from "@/lib/services/media";
-import type { MediaItem } from "@/lib/types/media.types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, ArrowLeft, Star } from "lucide-react";
-import { useSelector } from "react-redux";
-import { RootState } from "@/lib/store";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "@/lib/store";
 import { AddToListModal } from "@/components/lists/add-to-list-modal";
+import { MediaItem } from "@/lib/features/media/mediaSlice";
+import {
+  fetchSimilar,
+  selectSimilarMedia,
+  selectSimilarStatus,
+} from "@/lib/features/recommendations/recommendationsSlice";
+import { MediaCarousel } from "@/components/media/media-carousel";
 
 export default function MediaDetailsPage() {
   const params = useParams();
   const router = useRouter();
+  const dispatch = useDispatch<AppDispatch>();
   const [media, setMedia] = useState<MediaItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
 
+  const mediaId = params.id as string;
+  const similarMedia = useSelector(selectSimilarMedia(mediaId));
+  const similarStatus = useSelector(selectSimilarStatus(mediaId));
+
   useEffect(() => {
     const fetchDetails = async () => {
       try {
         setLoading(true);
-        const data = await fetchMediaDetails(params.id as string);
+        const data = await fetchMediaDetails(mediaId);
         setMedia(data);
         setError(null);
+
+        // Fetch similar media recommendations
+        dispatch(fetchSimilar(mediaId));
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load media details"
@@ -38,7 +52,7 @@ export default function MediaDetailsPage() {
     };
 
     fetchDetails();
-  }, [params.id]);
+  }, [mediaId, dispatch]);
 
   // Loading state
   if (loading) {
@@ -192,6 +206,16 @@ export default function MediaDetailsPage() {
             )}
           </div>
         </div>
+      </div>
+      {/* Similar Media Recommendations */}
+      <div className="mt-12">
+        <MediaCarousel
+          title="Similar Media You Might Like"
+          items={similarMedia}
+          isLoading={similarStatus === "loading"}
+          emptyMessage="No similar media found."
+          viewAllHref={`/recommendations?mediaType=${media.mediaType}`}
+        />
       </div>
     </div>
   );

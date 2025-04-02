@@ -5,8 +5,15 @@ import {
   fetchSimilarMedia,
   updateUserPreferences,
 } from "@/lib/services/recommendations";
-import type { MediaItem } from "@/lib/features/media/mediaSlice";
+import type { MediaItem, MediaType } from "@/lib/features/media/mediaSlice";
 import type { RootState } from "@/lib/store";
+
+export interface RecommendationsParams {
+  limit?: number;
+  page?: number;
+  mediaType?: MediaType;
+  includeRated?: boolean;
+}
 
 export interface UserPreferences {
   genreIds: string[];
@@ -26,6 +33,12 @@ interface RecommendationsState {
   similarStatus: Record<string, "idle" | "loading" | "succeeded" | "failed">;
   preferencesStatus: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
+  pagination: {
+    currentPage: number;
+    totalPages: number;
+    totalItems: number;
+    itemsPerPage: number;
+  };
 }
 
 const initialState: RecommendationsState = {
@@ -38,15 +51,21 @@ const initialState: RecommendationsState = {
   similarStatus: {},
   preferencesStatus: "idle",
   error: null,
+  pagination: {
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+  },
 };
 
 // Async thunks
 export const fetchPersonalized = createAsyncThunk(
   "recommendations/fetchPersonalized",
-  async (_, { rejectWithValue }) => {
+  async (params: RecommendationsParams = {}, { rejectWithValue }) => {
     try {
-      const response = await fetchPersonalizedRecommendations();
-      return response.data;
+      const response = await fetchPersonalizedRecommendations(params);
+      return response;
     } catch (error) {
       return rejectWithValue(
         error instanceof Error
@@ -59,10 +78,10 @@ export const fetchPersonalized = createAsyncThunk(
 
 export const fetchTrending = createAsyncThunk(
   "recommendations/fetchTrending",
-  async (_, { rejectWithValue }) => {
+  async (params: RecommendationsParams = {}, { rejectWithValue }) => {
     try {
-      const response = await fetchTrendingMedia();
-      return response.data;
+      const response = await fetchTrendingMedia(params);
+      return response;
     } catch (error) {
       return rejectWithValue(
         error instanceof Error
@@ -118,8 +137,11 @@ const recommendationsSlice = createSlice({
       })
       .addCase(fetchPersonalized.fulfilled, (state, action) => {
         state.personalizedStatus = "succeeded";
-        state.personalized = action.payload;
+        state.personalized = action.payload.data;
         state.error = null;
+        if (action.payload.meta?.pagination) {
+          state.pagination = action.payload.meta.pagination;
+        }
       })
       .addCase(fetchPersonalized.rejected, (state, action) => {
         state.personalizedStatus = "failed";
@@ -132,7 +154,10 @@ const recommendationsSlice = createSlice({
       })
       .addCase(fetchTrending.fulfilled, (state, action) => {
         state.trendingStatus = "succeeded";
-        state.trending = action.payload;
+        state.trending = action.payload.data;
+        if (action.payload.meta?.pagination) {
+          state.pagination = action.payload.meta.pagination;
+        }
         state.error = null;
       })
       .addCase(fetchTrending.rejected, (state, action) => {
@@ -194,5 +219,7 @@ export const selectPreferencesStatus = (state: RootState) =>
   state.recommendations.preferencesStatus;
 export const selectRecommendationsError = (state: RootState) =>
   state.recommendations.error;
+export const selectRecommendationsPagination = (state: RootState) =>
+  state.recommendations.pagination;
 
 export default recommendationsSlice.reducer;

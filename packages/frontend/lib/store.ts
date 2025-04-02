@@ -4,6 +4,7 @@ import mediaReducer from "./features/media/mediaSlice";
 import userReducer from "./features/users/userSlice";
 import listsReducer from "./features/lists/listsSlice";
 import recommendationsReducer from "./features/recommendations/recommendationsSlice";
+import genresReducer from "./features/genres/genresSlice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     users: userReducer,
     lists: listsReducer,
     recommendations: recommendationsReducer,
+    genres: genresReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
