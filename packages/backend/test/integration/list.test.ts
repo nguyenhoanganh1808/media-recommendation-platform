@@ -224,8 +224,8 @@ describe("Lists API Integration Tests", () => {
         .set("Authorization", `Bearer ${authToken}`);
 
       expect(response.status).toBe(200);
-      expect(response.body.meta.pagination.page).toBe(1);
-      expect(response.body.meta.pagination.limit).toBe(5);
+      expect(response.body.meta.pagination.currentPage).toBe(1);
+      expect(response.body.meta.pagination.itemsPerPage).toBe(5);
     });
   });
 

@@ -7,7 +7,7 @@
     "start": "node dist/server.js",
     "dev": "nodemon --ext ts --exec ts-node src/server.ts",
     "build": "tsc",
-    "test": "jest --runInBand",
+    "test": "jest --runInBand --detectOpenHandles --forceExit",
     "lint": "eslint . --ext .ts",
     "format": "prettier --write .",
     "prisma:migrate": "prisma migrate dev",
