@@ -9,7 +9,7 @@ import {
   type SortOption,
   type SortOrder,
 } from "@/lib/features/media/mediaSlice";
-import type { RootState } from "@/lib/store";
+import { AppDispatch, type RootState } from "@/lib/store";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,10 +32,18 @@ import {
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  fetchAllGenres,
+  selectAllGenres,
+  selectGenresStatus,
+} from "@/lib/features/genres/genresSlice";
+import { Skeleton } from "../ui/skeleton";
 
 export function FilterBar() {
-  const dispatch = useDispatch();
-  const { filters, genres } = useSelector((state: RootState) => state.media);
+  const dispatch = useDispatch<AppDispatch>();
+  const { filters } = useSelector((state: RootState) => state.media);
+  const genres = useSelector(selectAllGenres);
+  const genresStatus = useSelector(selectGenresStatus);
 
   // Local state for search input
   const [searchInput, setSearchInput] = useState(filters.search);
@@ -49,6 +57,18 @@ export function FilterBar() {
     filters.sortOrder
   );
 
+  // Fetch genres when component mounts
+  useEffect(() => {
+    if (genresStatus === "idle") {
+      dispatch(
+        fetchAllGenres({
+          page: filters.page,
+          limit: 100,
+        })
+      );
+    }
+  }, [dispatch, genresStatus]);
+
   // Apply debounced search
   useEffect(() => {
     dispatch(setFilter({ search: debouncedSearch }));
@@ -56,9 +76,8 @@ export function FilterBar() {
 
   // Handle filter changes
   const handleTypeChange = (value: string) => {
-    dispatch(
-      setFilter({ type: value === "ALL" ? null : (value as MediaType) })
-    );
+    const mediaType = value === "ALL" ? null : (value as MediaType);
+    dispatch(setFilter({ type: mediaType, genre: null })); // Reset genre when type changes
   };
 
   const handleGenreChange = (value: string) => {
@@ -164,11 +183,19 @@ export function FilterBar() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="ALL">All Genres</SelectItem>
-              {genres.map((genre) => (
-                <SelectItem key={genre} value={genre}>
-                  {genre}
-                </SelectItem>
-              ))}
+              {genresStatus === "loading" ? (
+                <div className="p-2">
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-full" />
+                </div>
+              ) : (
+                genres.map((genre) => (
+                  <SelectItem key={genre.id} value={genre.name}>
+                    {genre.name}
+                  </SelectItem>
+                ))
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -245,20 +272,31 @@ export function FilterBar() {
                 <Label htmlFor="mobile-genre">Genre</Label>
                 <Select
                   value={mobileGenre || "ALL"}
-                  onValueChange={(value) =>
-                    setMobileGenre(value === "ALL" ? null : value)
-                  }
+                  onValueChange={(value) => {
+                    setMobileType(
+                      value === "ALL" ? null : (value as MediaType)
+                    );
+                    setMobileGenre(null); // Reset genre when type changes
+                  }}
                 >
                   <SelectTrigger id="mobile-genre">
                     <SelectValue placeholder="All Genres" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="ALL">All Genres</SelectItem>
-                    {genres.map((genre) => (
-                      <SelectItem key={genre} value={genre}>
-                        {genre}
-                      </SelectItem>
-                    ))}
+                    {genresStatus === "loading" ? (
+                      <div className="p-2">
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-full mb-2" />
+                        <Skeleton className="h-4 w-full" />
+                      </div>
+                    ) : (
+                      genres.map((genre) => (
+                        <SelectItem key={genre.id} value={genre.name}>
+                          {genre.name}
+                        </SelectItem>
+                      ))
+                    )}
                   </SelectContent>
                 </Select>
               </div>

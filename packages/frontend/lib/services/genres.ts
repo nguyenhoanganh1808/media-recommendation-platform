@@ -19,8 +19,7 @@ export const fetchGenres = async (
   params: GenresParams = {}
 ): Promise<GenresResponse> => {
   try {
-    // In a real app, this would be:
-    const response = await api.get("/api/genres", { params });
+    const response = await api.get("/genres", { params });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

@@ -27,33 +27,20 @@ import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
-// Mock genres for the demo
-const AVAILABLE_GENRES = [
-  { id: "action", name: "Action" },
-  { id: "adventure", name: "Adventure" },
-  { id: "comedy", name: "Comedy" },
-  { id: "crime", name: "Crime" },
-  { id: "drama", name: "Drama" },
-  { id: "fantasy", name: "Fantasy" },
-  { id: "horror", name: "Horror" },
-  { id: "mystery", name: "Mystery" },
-  { id: "romance", name: "Romance" },
-  { id: "scifi", name: "Sci-Fi" },
-  { id: "thriller", name: "Thriller" },
-  { id: "superhero", name: "Superhero" },
-  { id: "rpg", name: "RPG" },
-  { id: "openworld", name: "Open World" },
-  { id: "soulslike", name: "Souls-like" },
-  { id: "historical", name: "Historical" },
-  { id: "martial-arts", name: "Martial Arts" },
-];
+import {
+  fetchAllGenres,
+  selectAllGenres,
+  selectGenresStatus,
+} from "@/lib/features/genres/genresSlice";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PreferencesPage() {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
   const savedPreferences = useSelector(selectUserPreferences);
   const preferencesStatus = useSelector(selectPreferencesStatus);
   const error = useSelector(selectRecommendationsError);
+  const genres = useSelector(selectAllGenres);
+  const genresStatus = useSelector(selectGenresStatus);
 
   const [selectedGenres, setSelectedGenres] = useState<string[]>([]);
   const [movieStrength, setMovieStrength] = useState(0.5);
@@ -62,6 +49,13 @@ export default function PreferencesPage() {
 
   const dispatch = useDispatch<AppDispatch>();
   const router = useRouter();
+
+  // Fetch genres when component mounts
+  useEffect(() => {
+    if (genresStatus === "idle") {
+      dispatch(fetchAllGenres({ limit: 100 })); // Fetch all genres
+    }
+  }, [dispatch, genresStatus]);
 
   // Initialize form with saved preferences if available
   useEffect(() => {
@@ -151,18 +145,26 @@ export default function PreferencesPage() {
                 Select the genres you're interested in. You can select multiple
                 genres.
               </p>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                {AVAILABLE_GENRES.map((genre) => (
-                  <div key={genre.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`genre-${genre.id}`}
-                      checked={selectedGenres.includes(genre.id)}
-                      onCheckedChange={() => handleGenreToggle(genre.id)}
-                    />
-                    <Label htmlFor={`genre-${genre.id}`}>{genre.name}</Label>
-                  </div>
-                ))}
-              </div>
+              {genresStatus === "loading" ? (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {Array.from({ length: 12 }).map((_, index) => (
+                    <Skeleton key={index} className="h-8" />
+                  ))}
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {genres.map((genre) => (
+                    <div key={genre.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`genre-${genre.id}`}
+                        checked={selectedGenres.includes(genre.id)}
+                        onCheckedChange={() => handleGenreToggle(genre.id)}
+                      />
+                      <Label htmlFor={`genre-${genre.id}`}>{genre.name}</Label>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div className="space-y-6">
