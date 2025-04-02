@@ -106,11 +106,15 @@ export const fetchSimilar = createAsyncThunk(
   }
 );
 
-export const saveUserPreferences = createAsyncThunk(
+export const saveUserPreferences = createAsyncThunk<
+  UserPreferences,
+  { userId: string; preferences: UserPreferences },
+  { rejectValue: string }
+>(
   "recommendations/saveUserPreferences",
-  async (preferences: UserPreferences, { rejectWithValue }) => {
+  async ({ userId, preferences }, { rejectWithValue }) => {
     try {
-      await updateUserPreferences(preferences);
+      await updateUserPreferences(userId, preferences);
       return preferences;
     } catch (error) {
       return rejectWithValue(

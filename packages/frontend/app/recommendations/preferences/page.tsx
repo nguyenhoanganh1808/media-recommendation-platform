@@ -35,10 +35,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PreferencesPage() {
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, user } = useSelector(
+    (state: RootState) => state.auth
+  );
   const savedPreferences = useSelector(selectUserPreferences);
   const preferencesStatus = useSelector(selectPreferencesStatus);
-  const error = useSelector(selectRecommendationsError);
   const genres = useSelector(selectAllGenres);
   const genresStatus = useSelector(selectGenresStatus);
 
@@ -97,7 +98,9 @@ export default function PreferencesPage() {
     };
 
     try {
-      await dispatch(saveUserPreferences(preferences)).unwrap();
+      await dispatch(
+        saveUserPreferences({ userId: user!.id, preferences: preferences })
+      ).unwrap();
       toast.success("Success", {
         description: "Your preferences have been updated",
       });
@@ -117,7 +120,7 @@ export default function PreferencesPage() {
   }
 
   return (
-    <div className="container py-8 space-y-4">
+    <div className="container py-8">
       <Button
         variant="ghost"
         className="mb-6"
@@ -229,7 +232,7 @@ export default function PreferencesPage() {
             </div>
           </CardContent>
 
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex justify-between mt-3">
             <Button
               type="button"
               variant="outline"

@@ -72,10 +72,11 @@ export const fetchSimilarMedia = async (
 
 // Update user preferences
 export const updateUserPreferences = async (
+  userId: string,
   preferences: UserPreferences
 ): Promise<void> => {
   try {
-    await api.put("/recommendations/preferences", preferences);
+    await api.put(`/recommendations/preferences/${userId}`, preferences);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
