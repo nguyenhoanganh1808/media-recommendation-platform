@@ -241,19 +241,6 @@ export class ReviewService {
       throw new AppError("Review not found", 404, "REVIEW_NOT_FOUND");
     }
 
-    // Check if user owns the review or is a moderator/admin
-    if (
-      review.userId !== userId &&
-      userRole !== Role.ADMIN &&
-      userRole !== Role.MODERATOR
-    ) {
-      throw new AppError(
-        "You do not have permission to delete this review",
-        403,
-        "PERMISSION_DENIED"
-      );
-    }
-
     // Delete the review
     await prisma.mediaReview.delete({
       where: { id: reviewId },

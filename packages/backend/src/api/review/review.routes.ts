@@ -59,6 +59,7 @@ router.put(
 // Delete a review (authenticated)
 router.delete(
   "/:id",
+  restrictTo(Role.ADMIN, Role.MODERATOR),
   authenticate,
   validate(deleteReviewValidation),
   reviewController.deleteReview

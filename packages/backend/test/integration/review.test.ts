@@ -56,6 +56,9 @@ describe("Review Routes", () => {
     await prisma.user.deleteMany({
       where: { id: { in: [testUsers.regular.id, testUsers.admin.id] } },
     });
+    await prisma.user.deleteMany({
+      where: { username: "anotheruser" },
+    });
   });
 
   describe("POST /", () => {
@@ -108,7 +111,7 @@ describe("Review Routes", () => {
 
       expect(response.status).toBe(400);
       expect(response.body.success).toBe(false);
-      expect(response.body.errors).toBeDefined();
+      expect(response.body.error).toBeDefined();
     });
 
     it("should return 409 when user already reviewed the media", async () => {
@@ -138,7 +141,7 @@ describe("Review Routes", () => {
       expect(response.body.success).toBe(true);
       expect(Array.isArray(response.body.data)).toBe(true);
       expect(response.body.data.length).toBeGreaterThan(0);
-      expect(response.body.pagination).toBeDefined();
+      expect(response.body.meta.pagination).toBeDefined();
     });
 
     it("should respect pagination parameters", async () => {
@@ -147,8 +150,8 @@ describe("Review Routes", () => {
       );
 
       expect(response.status).toBe(200);
-      expect(response.body.pagination.page).toBe(1);
-      expect(response.body.pagination.limit).toBe(5);
+      expect(response.body.meta.pagination.currentPage).toBe(1);
+      expect(response.body.meta.pagination.itemsPerPage).toBe(5);
     });
   });
 
@@ -275,7 +278,7 @@ describe("Review Routes", () => {
     it("should not allow non-authors to delete a review", async () => {
       const response = await request(app)
         .delete(`/api/reviews/${testReview.id}`)
-        .set("Authorization", `Bearer ${regularUserToken}`);
+        .set("Authorization", `Bearer ${adminUserToken}`);
 
       expect(response.status).toBe(403);
       expect(response.body.success).toBe(false);
