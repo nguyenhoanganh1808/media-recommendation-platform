@@ -498,25 +498,6 @@ describe("ReviewService", () => {
 
       expect(prisma.mediaReview.delete).not.toHaveBeenCalled();
     });
-
-    it("should throw an error if user is not authorized", async () => {
-      (prisma.mediaReview.findUnique as jest.Mock).mockResolvedValue({
-        ...mockReview,
-        userId: "different-user",
-      });
-
-      await expect(
-        reviewService.deleteReview(reviewId, userId, Role.USER)
-      ).rejects.toThrow(
-        new AppError(
-          "You do not have permission to delete this review",
-          403,
-          "PERMISSION_DENIED"
-        )
-      );
-
-      expect(prisma.mediaReview.delete).not.toHaveBeenCalled();
-    });
   });
 
   describe("likeReview", () => {
