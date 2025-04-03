@@ -18,7 +18,7 @@ interface RatingsResponse {
 export const createRating = async (
   mediaId: string,
   rating: number
-): Promise<Rating> => {
+): Promise<{ data: Rating }> => {
   try {
     const response = await api.post("/api/ratings", { mediaId, rating });
     return response.data;
@@ -36,7 +36,7 @@ export const createRating = async (
 export const updateRating = async (
   ratingId: string,
   rating: number
-): Promise<Rating> => {
+): Promise<{ data: Rating }> => {
   try {
     const response = await api.put(`/api/ratings/${ratingId}`, { rating });
     return response.data;
@@ -106,7 +106,9 @@ export const getMediaRatings = async (
 };
 
 // Get a specific rating
-export const getRating = async (ratingId: string): Promise<Rating> => {
+export const getRating = async (
+  ratingId: string
+): Promise<{ data: Rating }> => {
   try {
     const response = await api.get(`/api/ratings/${ratingId}`);
     return response.data;
