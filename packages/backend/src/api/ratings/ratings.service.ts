@@ -1,9 +1,9 @@
 // src/api/ratings/ratings.service.ts
-import { prisma } from '../../config/database';
-import { MediaRating } from '@prisma/client';
-import { AppError } from '../../middlewares/error.middleware';
-import { clearCacheByPattern } from '../../middlewares/cache.middleware';
-import { createPagination } from '../../utils/responseFormatter';
+import { prisma } from "../../config/database";
+import { MediaRating } from "@prisma/client";
+import { AppError } from "../../middlewares/error.middleware";
+import { clearCacheByPattern } from "../../middlewares/cache.middleware";
+import { createPagination } from "../../utils/responseFormatter";
 
 /**
  * Create a new media rating
@@ -19,7 +19,7 @@ export const createRating = async (
   });
 
   if (!media) {
-    throw new AppError('Media not found', 404, 'MEDIA_NOT_FOUND');
+    throw new AppError("Media not found", 404, "MEDIA_NOT_FOUND");
   }
 
   // Check if user has already rated this media
@@ -34,9 +34,9 @@ export const createRating = async (
 
   if (existingRating) {
     throw new AppError(
-      'You have already rated this media. Please update your rating instead.',
+      "You have already rated this media. Please update your rating instead.",
       409,
-      'RATING_EXISTS'
+      "RATING_EXISTS"
     );
   }
 
@@ -48,6 +48,27 @@ export const createRating = async (
         userId,
         mediaId,
         rating,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        media: {
+          select: {
+            id: true,
+            title: true,
+            coverImage: true,
+            mediaType: true,
+            averageRating: true,
+            ratingsCount: true,
+          },
+        },
       },
     });
 
@@ -94,14 +115,14 @@ export const updateRating = async (
   });
 
   if (!existingRating) {
-    throw new AppError('Rating not found', 404, 'RATING_NOT_FOUND');
+    throw new AppError("Rating not found", 404, "RATING_NOT_FOUND");
   }
 
   if (existingRating.userId !== userId) {
     throw new AppError(
-      'You can only update your own ratings',
+      "You can only update your own ratings",
       403,
-      'UNAUTHORIZED'
+      "UNAUTHORIZED"
     );
   }
 
@@ -111,6 +132,27 @@ export const updateRating = async (
     const mediaRating = await tx.mediaRating.update({
       where: { id: ratingId },
       data: { rating },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        media: {
+          select: {
+            id: true,
+            title: true,
+            coverImage: true,
+            mediaType: true,
+            averageRating: true,
+            ratingsCount: true,
+          },
+        },
+      },
     });
 
     const { mediaId } = mediaRating;
@@ -157,7 +199,7 @@ export const deleteRating = async (
   });
 
   if (!existingRating) {
-    throw new AppError('Rating not found', 404, 'RATING_NOT_FOUND');
+    throw new AppError("Rating not found", 404, "RATING_NOT_FOUND");
   }
 
   // Delete the rating in a transaction to maintain consistency
@@ -201,10 +243,31 @@ export const deleteRating = async (
 export const getRatingById = async (ratingId: string): Promise<MediaRating> => {
   const rating = await prisma.mediaRating.findUnique({
     where: { id: ratingId },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          username: true,
+          avatar: true,
+        },
+      },
+      media: {
+        select: {
+          id: true,
+          title: true,
+          coverImage: true,
+          mediaType: true,
+          averageRating: true,
+          ratingsCount: true,
+        },
+      },
+    },
   });
 
   if (!rating) {
-    throw new AppError('Rating not found', 404, 'RATING_NOT_FOUND');
+    throw new AppError("Rating not found", 404, "RATING_NOT_FOUND");
   }
 
   return rating;
@@ -222,6 +285,27 @@ export const getUserMediaRating = async (
       userId_mediaId: {
         userId,
         mediaId,
+      },
+    },
+    include: {
+      user: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          username: true,
+          avatar: true,
+        },
+      },
+      media: {
+        select: {
+          id: true,
+          title: true,
+          coverImage: true,
+          mediaType: true,
+          averageRating: true,
+          ratingsCount: true,
+        },
       },
     },
   });
@@ -242,13 +326,25 @@ export const getMediaRatings = async (
       where: { mediaId },
       skip,
       take: limit,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
         user: {
           select: {
             id: true,
+            firstName: true,
+            lastName: true,
             username: true,
             avatar: true,
+          },
+        },
+        media: {
+          select: {
+            id: true,
+            title: true,
+            coverImage: true,
+            mediaType: true,
+            averageRating: true,
+            ratingsCount: true,
           },
         },
       },
@@ -279,7 +375,7 @@ export const getUserRatings = async (
   });
 
   if (!user) {
-    throw new AppError('User not found', 404, 'USER_NOT_FOUND');
+    throw new AppError("User not found", 404, "USER_NOT_FOUND");
   }
 
   const [ratings, total] = await Promise.all([
@@ -287,8 +383,17 @@ export const getUserRatings = async (
       where: { userId },
       skip,
       take: limit,
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
       include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            username: true,
+            avatar: true,
+          },
+        },
         media: {
           select: {
             id: true,
@@ -296,6 +401,7 @@ export const getUserRatings = async (
             coverImage: true,
             mediaType: true,
             averageRating: true,
+            ratingsCount: true,
           },
         },
       },
