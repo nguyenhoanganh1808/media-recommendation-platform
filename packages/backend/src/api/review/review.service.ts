@@ -55,6 +55,17 @@ export class ReviewService {
         content: data.content,
         isVisible: data.isVisible !== undefined ? data.isVisible : true,
       },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            username: true,
+            avatar: true,
+          },
+        },
+      },
     });
 
     // Clear cache for this media's reviews

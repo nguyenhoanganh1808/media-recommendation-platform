@@ -20,6 +20,7 @@ import {
 import { MediaCarousel } from "@/components/media/media-carousel";
 import { RatingInput } from "@/components/ratings/ratings-input";
 import { StarRating } from "@/components/ratings/star-rating";
+import { fetchMediaRatings } from "@/lib/features/ratings/ratingsSlice";
 
 export default function MediaDetailsPage() {
   const params = useParams();
@@ -44,6 +45,7 @@ export default function MediaDetailsPage() {
 
         // Fetch similar media recommendations
         dispatch(fetchSimilar(mediaId));
+        dispatch(fetchMediaRatings({ mediaId, limit: 100 }));
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load media details"

@@ -24,6 +24,7 @@ export function RatingInput({ mediaId, onRatingChange }: RatingInputProps) {
   const dispatch = useDispatch<AppDispatch>();
   const userRating = useSelector(selectUserRatingForMedia(mediaId));
   const status = useSelector(selectRatingsStatus);
+  console.log("userRating: ", userRating);
 
   const [rating, setRating] = useState<number>(userRating?.rating || 0);
   const [isEditing, setIsEditing] = useState(false);

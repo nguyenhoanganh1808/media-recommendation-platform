@@ -1,9 +1,9 @@
-import { Request, Response, NextFunction } from 'express';
-import passport from 'passport';
-import { AppError } from './error.middleware';
-import { prisma } from '../config/database';
-import { Role } from '@prisma/client';
-import asyncHandler from '../utils/asyncHandler';
+import { Request, Response, NextFunction } from "express";
+import passport from "passport";
+import { AppError } from "./error.middleware";
+import { prisma } from "../config/database";
+import { Role } from "@prisma/client";
+import asyncHandler from "../utils/asyncHandler";
 
 // Define a custom type to extend Express Request
 declare global {
@@ -25,7 +25,7 @@ export const authenticate = (
   next: NextFunction
 ) => {
   passport.authenticate(
-    'jwt',
+    "jwt",
     { session: false },
     (err: Error, user: Express.User, info: any) => {
       if (err) {
@@ -34,13 +34,13 @@ export const authenticate = (
 
       if (!user) {
         return next(
-          new AppError('Authentication required. Please log in.', 401)
+          new AppError("Authentication required. Please log in.", 401)
         );
       }
 
       // Check if user is active
       if (!user.isActive) {
-        return next(new AppError('User account is not active', 403));
+        return next(new AppError("User account is not active", 403));
       }
 
       req.user = user!;
@@ -56,7 +56,7 @@ export const authenticateRefreshToken = (
   next: NextFunction
 ) => {
   passport.authenticate(
-    'jwt-refresh',
+    "jwt-refresh",
     { session: false },
     (err: Error, user: Express.User, info: any) => {
       if (err) {
@@ -64,7 +64,7 @@ export const authenticateRefreshToken = (
       }
 
       if (!user) {
-        return next(new AppError('Invalid refresh token', 401));
+        return next(new AppError("Invalid refresh token", 401));
       }
 
       req.user = user;
@@ -77,12 +77,12 @@ export const authenticateRefreshToken = (
 export const restrictTo = (...roles: Role[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     if (!req.user) {
-      return next(new AppError('Authentication required. Please log in.', 401));
+      return next(new AppError("Authentication required. Please log in.", 401));
     }
 
     if (!roles.includes(req.user.role)) {
       return next(
-        new AppError('You do not have permission to perform this action', 403)
+        new AppError("You do not have permission to perform this action", 403)
       );
     }
 
@@ -93,13 +93,13 @@ export const restrictTo = (...roles: Role[]) => {
 // Middleware to check if user owns a resource
 export const checkOwnership = (
   resourceModel: string,
-  paramIdField: string = 'id'
+  paramIdField: string = "id"
 ) => {
   return asyncHandler(
     async (req: Request, _res: Response, next: NextFunction) => {
       if (!req.user) {
         return next(
-          new AppError('Authentication required. Please log in.', 401)
+          new AppError("Authentication required. Please log in.", 401)
         );
       }
 
@@ -113,7 +113,7 @@ export const checkOwnership = (
       // Dynamically get the model from Prisma
       const model = prisma[resourceModel as keyof typeof prisma] as any;
       if (!model) {
-        return next(new AppError('Invalid resource model', 500));
+        return next(new AppError("Invalid resource model", 500));
       }
 
       const resource = await model.findUnique({
@@ -122,13 +122,13 @@ export const checkOwnership = (
       });
 
       if (!resource) {
-        return next(new AppError('Resource not found', 404));
+        return next(new AppError("Resource not found", 404));
       }
 
       if (resource.userId !== req.user.id) {
         return next(
           new AppError(
-            'You do not have permission to perform this action on this resource',
+            "You do not have permission to perform this action on this resource",
             403
           )
         );

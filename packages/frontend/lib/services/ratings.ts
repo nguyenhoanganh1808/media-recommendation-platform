@@ -20,7 +20,7 @@ export const createRating = async (
   rating: number
 ): Promise<{ data: Rating }> => {
   try {
-    const response = await api.post("/api/ratings", { mediaId, rating });
+    const response = await api.post("/ratings", { mediaId, rating });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -38,7 +38,7 @@ export const updateRating = async (
   rating: number
 ): Promise<{ data: Rating }> => {
   try {
-    const response = await api.put(`/api/ratings/${ratingId}`, { rating });
+    const response = await api.put(`/ratings/${ratingId}`, { rating });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -53,7 +53,7 @@ export const updateRating = async (
 // Delete a rating
 export const deleteRating = async (ratingId: string): Promise<void> => {
   try {
-    await api.delete(`/api/ratings/${ratingId}`);
+    await api.delete(`/ratings/${ratingId}`);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(
@@ -70,9 +70,7 @@ export const getUserRatings = async (
   limit = 10
 ): Promise<RatingsResponse> => {
   try {
-    const response = await api.get(
-      `/api/ratings/me?page=${page}&limit=${limit}`
-    );
+    const response = await api.get(`/ratings/me?page=${page}&limit=${limit}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -92,7 +90,7 @@ export const getMediaRatings = async (
 ): Promise<RatingsResponse> => {
   try {
     const response = await api.get(
-      `/api/ratings/media/${mediaId}?page=${page}&limit=${limit}`
+      `/ratings/media/${mediaId}?page=${page}&limit=${limit}`
     );
     return response.data;
   } catch (error) {
@@ -110,7 +108,7 @@ export const getRating = async (
   ratingId: string
 ): Promise<{ data: Rating }> => {
   try {
-    const response = await api.get(`/api/ratings/${ratingId}`);
+    const response = await api.get(`/ratings/${ratingId}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
