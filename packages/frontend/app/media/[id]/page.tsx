@@ -18,6 +18,8 @@ import {
   selectSimilarStatus,
 } from "@/lib/features/recommendations/recommendationsSlice";
 import { MediaCarousel } from "@/components/media/media-carousel";
+import { RatingInput } from "@/components/ratings/ratings-input";
+import { StarRating } from "@/components/ratings/star-rating";
 
 export default function MediaDetailsPage() {
   const params = useParams();
@@ -155,6 +157,11 @@ export default function MediaDetailsPage() {
               {media.mediaType}
             </Badge>
           </div>
+          {isAuthenticated && (
+            <div className="mt-6 space-y-4">
+              <RatingInput mediaId={media.id} />
+            </div>
+          )}
         </div>
 
         <div className="w-full md:w-2/3">
@@ -167,9 +174,9 @@ export default function MediaDetailsPage() {
           )}
 
           <div className="flex items-center mt-4 space-x-4">
-            <div className="flex items-center text-yellow-500">
-              <Star className="h-5 w-5 fill-current" />
-              <span className="ml-1 font-bold">
+            <div className="flex items-center">
+              <StarRating value={media.averageRating} readOnly size="sm" />
+              <span className="ml-2 font-bold">
                 {media.averageRating.toFixed(1)}
               </span>
             </div>
@@ -195,7 +202,6 @@ export default function MediaDetailsPage() {
             {isAuthenticated ? (
               <>
                 <AddToListModal media={media} />
-                <Button variant="outline">Rate</Button>
               </>
             ) : (
               <Button asChild>
