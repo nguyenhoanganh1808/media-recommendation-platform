@@ -92,9 +92,9 @@ export function MediaRatingReviews({
                 mediaId={mediaId}
                 size="lg"
                 onRatingChange={(rating) => {
-                  if (rating && !activeTab.includes("review")) {
-                    setActiveTab("review");
-                  }
+                  // if (rating && !activeTab.includes("review")) {
+                  //   setActiveTab("review");
+                  // }
                 }}
               />
             </div>
