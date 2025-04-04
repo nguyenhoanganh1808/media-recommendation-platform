@@ -5,7 +5,6 @@ import userReducer from "./features/users/userSlice";
 import listsReducer from "./features/lists/listsSlice";
 import recommendationsReducer from "./features/recommendations/recommendationsSlice";
 import genresReducer from "./features/genres/genresSlice";
-import ratingsReducer from "./features/ratings/ratingsSlice";
 
 export const store = configureStore({
   reducer: {
@@ -15,7 +14,6 @@ export const store = configureStore({
     lists: listsReducer,
     recommendations: recommendationsReducer,
     genres: genresReducer,
-    ratings: ratingsReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -18,7 +18,7 @@ import {
   selectSimilarStatus,
 } from "@/lib/features/recommendations/recommendationsSlice";
 import { MediaCarousel } from "@/components/media/media-carousel";
-import { RatingInput } from "@/components/ratings/ratings-input";
+import { RatingInput } from "@/components/ratings/rating-form";
 import { StarRating } from "@/components/ratings/star-rating";
 import { fetchMediaRatings } from "@/lib/features/ratings/ratingsSlice";
 

@@ -1,136 +1,103 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import {
-  createRating,
-  updateRating,
+  submitRating,
+  fetchUserRating,
   deleteRating,
-  getUserRatings,
-  getMediaRatings,
-  getRating,
+  submitReview,
+  fetchReviews,
+  fetchUserReview,
+  deleteReview,
+  likeReview,
+  unlikeReview,
 } from "@/lib/services/ratings";
 import type { RootState } from "@/lib/store";
+
+export interface RatingResponse {
+  data: Rating;
+}
 
 export interface Rating {
   id: string;
   userId: string;
   mediaId: string;
-  rating: number;
+  score: number;
   createdAt: string;
   updatedAt: string;
-  user?: {
+}
+
+export interface Review {
+  id: string;
+  userId: string;
+  mediaId: string;
+  content: string;
+  containsSpoilers: boolean;
+  isPublic: boolean;
+  likesCount: number;
+  isLikedByUser: boolean;
+  createdAt: string;
+  updatedAt: string;
+  user: {
     id: string;
     name: string;
     username: string;
-    avatar?: string;
+    avatar: string;
   };
-  media?: {
-    id: string;
-    title: string;
-    mediaType: string;
-    coverImage: string;
+  rating?: {
+    score: number;
   };
+}
+
+export interface ReviewsParams {
+  mediaId: string;
+  page?: number;
+  limit?: number;
+  sortBy?: "newest" | "oldest" | "highestRated" | "lowestRated" | "mostHelpful";
+  filterRated?: boolean;
+  hideSpoilers?: boolean;
 }
 
 interface RatingsState {
-  userRatings: Rating[];
-  mediaRatings: Record<string, Rating[]>;
-  currentRating: Rating | null;
-  userRatingsByMedia: Record<string, Rating | null>;
-  status: "idle" | "loading" | "succeeded" | "failed";
+  userRatings: Record<string, Rating | null>;
+  userReviews: Record<string, Review | null>;
+  mediaReviews: Record<string, Review[]>;
+  ratingStatus: Record<string, "idle" | "loading" | "succeeded" | "failed">;
+  reviewStatus: Record<string, "idle" | "loading" | "succeeded" | "failed">;
+  mediaReviewsStatus: Record<
+    string,
+    "idle" | "loading" | "succeeded" | "failed"
+  >;
   error: string | null;
-  pagination: {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    itemsPerPage: number;
-  };
+  pagination: Record<
+    string,
+    {
+      currentPage: number;
+      totalPages: number;
+      totalItems: number;
+      itemsPerPage: number;
+    }
+  >;
 }
 
 const initialState: RatingsState = {
-  userRatings: [],
-  mediaRatings: {},
-  currentRating: null,
-  userRatingsByMedia: {},
-  status: "idle",
+  userRatings: {},
+  userReviews: {},
+  mediaReviews: {},
+  ratingStatus: {},
+  reviewStatus: {},
+  mediaReviewsStatus: {},
   error: null,
-  pagination: {
-    currentPage: 1,
-    totalPages: 1,
-    totalItems: 0,
-    itemsPerPage: 10,
-  },
+  pagination: {},
 };
 
-// Async thunks
-export const fetchUserRatings = createAsyncThunk(
-  "ratings/fetchUserRatings",
-  async (
-    { page = 1, limit = 10 }: { page?: number; limit?: number },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await getUserRatings(page, limit);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Failed to fetch user ratings"
-      );
-    }
-  }
-);
-
-export const fetchMediaRatings = createAsyncThunk(
-  "ratings/fetchMediaRatings",
-  async (
-    {
-      mediaId,
-      page = 1,
-      limit = 10,
-    }: {
-      mediaId: string;
-      page?: number;
-      limit?: number;
-    },
-    { rejectWithValue }
-  ) => {
-    try {
-      const response = await getMediaRatings(mediaId, page, limit);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Failed to fetch media ratings"
-      );
-    }
-  }
-);
-
-export const fetchRating = createAsyncThunk(
-  "ratings/fetchRating",
-  async (ratingId: string, { rejectWithValue }) => {
-    try {
-      const response = await getRating(ratingId);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error instanceof Error ? error.message : "Failed to fetch rating"
-      );
-    }
-  }
-);
-
-export const submitRating = createAsyncThunk(
+// Async thunks for ratings
+export const submitUserRating = createAsyncThunk(
   "ratings/submitRating",
   async (
-    {
-      mediaId,
-      rating,
-    }: {
-      mediaId: string;
-      rating: number;
-    },
+    { mediaId, rating }: { mediaId: string; rating: number },
     { rejectWithValue }
   ) => {
     try {
-      const response = await createRating(mediaId, rating);
+      const response = await submitRating(mediaId, rating);
       return response;
     } catch (error) {
       return rejectWithValue(
@@ -140,38 +107,151 @@ export const submitRating = createAsyncThunk(
   }
 );
 
-export const editRating = createAsyncThunk(
-  "ratings/editRating",
-  async (
-    {
-      ratingId,
-      rating,
-    }: {
-      ratingId: string;
-      rating: number;
-    },
-    { rejectWithValue }
-  ) => {
+export const getUserRating = createAsyncThunk(
+  "ratings/getUserRating",
+  async (mediaId: string, { rejectWithValue }) => {
     try {
-      const response = await updateRating(ratingId, rating);
-      return response;
+      const response = await fetchUserRating(mediaId);
+      return { mediaId, rating: response.data[0] };
     } catch (error) {
+      if ((error as Error).message.includes("not found")) {
+        return { mediaId, rating: null };
+      }
       return rejectWithValue(
-        error instanceof Error ? error.message : "Failed to update rating"
+        error instanceof Error ? error.message : "Failed to fetch user rating"
       );
     }
   }
 );
 
-export const removeRating = createAsyncThunk(
+export const removeUserRating = createAsyncThunk(
   "ratings/removeRating",
-  async (ratingId: string, { rejectWithValue }) => {
+  async (mediaId: string, { rejectWithValue }) => {
     try {
-      await deleteRating(ratingId);
-      return ratingId;
+      await deleteRating(mediaId);
+      return mediaId;
     } catch (error) {
       return rejectWithValue(
         error instanceof Error ? error.message : "Failed to delete rating"
+      );
+    }
+  }
+);
+
+// Async thunks for reviews
+export const submitUserReview = createAsyncThunk(
+  "ratings/submitReview",
+  async (
+    {
+      mediaId,
+      content,
+      containsSpoilers,
+      isPublic,
+    }: {
+      mediaId: string;
+      content: string;
+      containsSpoilers: boolean;
+      isPublic: boolean;
+    },
+    { rejectWithValue }
+  ) => {
+    try {
+      const response = await submitReview(
+        mediaId,
+        content,
+        containsSpoilers,
+        isPublic
+      );
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Failed to submit review"
+      );
+    }
+  }
+);
+
+export const getUserReview = createAsyncThunk(
+  "ratings/getUserReview",
+  async (mediaId: string, { rejectWithValue }) => {
+    try {
+      const response = await fetchUserReview(mediaId);
+      return { mediaId, review: response };
+    } catch (error) {
+      if ((error as Error).message.includes("not found")) {
+        return { mediaId, review: null };
+      }
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Failed to fetch user review"
+      );
+    }
+  }
+);
+
+export const getMediaReviews = createAsyncThunk(
+  "ratings/getMediaReviews",
+  async (params: ReviewsParams, { rejectWithValue }) => {
+    try {
+      const response = await fetchReviews(params);
+      return {
+        mediaId: params.mediaId,
+        reviews: response.data,
+        pagination: response.meta.pagination,
+      };
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Failed to fetch reviews"
+      );
+    }
+  }
+);
+
+export const removeUserReview = createAsyncThunk(
+  "ratings/removeReview",
+  async (
+    { mediaId, reviewId }: { mediaId: string; reviewId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      await deleteReview(reviewId);
+      return { mediaId, reviewId };
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Failed to delete review"
+      );
+    }
+  }
+);
+
+export const likeUserReview = createAsyncThunk(
+  "ratings/likeReview",
+  async (
+    { mediaId, reviewId }: { mediaId: string; reviewId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      await likeReview(reviewId);
+      return { mediaId, reviewId };
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Failed to like review"
+      );
+    }
+  }
+);
+
+export const unlikeUserReview = createAsyncThunk(
+  "ratings/unlikeReview",
+  async (
+    { mediaId, reviewId }: { mediaId: string; reviewId: string },
+    { rejectWithValue }
+  ) => {
+    try {
+      await unlikeReview(reviewId);
+      return { mediaId, reviewId };
+    } catch (error) {
+      return rejectWithValue(
+        error instanceof Error ? error.message : "Failed to unlike review"
       );
     }
   }
@@ -181,215 +261,237 @@ const ratingsSlice = createSlice({
   name: "ratings",
   initialState,
   reducers: {
-    clearCurrentRating: (state) => {
-      state.currentRating = null;
-    },
-    clearRatings: (state) => {
-      state.userRatings = [];
-      state.mediaRatings = {};
-      state.currentRating = null;
-      state.status = "idle";
+    clearRatingState: (state, action) => {
+      const mediaId = action.payload;
+      state.ratingStatus[mediaId] = "idle";
+      state.reviewStatus[mediaId] = "idle";
+      state.mediaReviewsStatus[mediaId] = "idle";
     },
   },
   extraReducers: (builder) => {
     builder
-      // Fetch user ratings
-      .addCase(fetchUserRatings.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchUserRatings.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.userRatings = action.payload.data;
-        state.pagination = action.payload.meta.pagination;
-
-        // Also update the userRatingsByMedia map for quick lookup
-        action.payload.data.forEach((rating) => {
-          state.userRatingsByMedia[rating.mediaId] = rating;
-        });
-
-        state.error = null;
-      })
-      .addCase(fetchUserRatings.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload as string;
-      })
-
-      // Fetch media ratings
-      .addCase(fetchMediaRatings.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchMediaRatings.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        const ratings = action.payload.data;
-        const pagination = action.payload.meta.pagination;
-        const mediaId = action.meta.arg.mediaId;
-        state.mediaRatings[mediaId] = ratings;
-        state.pagination = pagination;
-        state.error = null;
-      })
-      .addCase(fetchMediaRatings.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload as string;
-      })
-
-      // Fetch single rating
-      .addCase(fetchRating.pending, (state) => {
-        state.status = "loading";
-      })
-      .addCase(fetchRating.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.currentRating = action.payload.data;
-
-        // Also update the userRatingsByMedia map
-        if (action.payload.data.mediaId) {
-          state.userRatingsByMedia[action.payload.data.mediaId] =
-            action.payload.data;
-        }
-
-        state.error = null;
-      })
-      .addCase(fetchRating.rejected, (state, action) => {
-        state.status = "failed";
-        state.error = action.payload as string;
-      })
-
       // Submit rating
-      .addCase(submitRating.pending, (state) => {
-        state.status = "loading";
+      .addCase(submitUserRating.pending, (state, action) => {
+        const mediaId = action.meta.arg.mediaId;
+        state.ratingStatus[mediaId] = "loading";
       })
-      .addCase(submitRating.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.currentRating = action.payload.data;
-
-        // Add to user ratings if not already there
-        const existingIndex = state.userRatings.findIndex(
-          (r) => r.id === action.payload.data.id
-        );
-        if (existingIndex === -1) {
-          state.userRatings.push(action.payload.data);
-        } else {
-          state.userRatings[existingIndex] = action.payload.data;
-        }
-
-        // Update the userRatingsByMedia map
-        state.userRatingsByMedia[action.payload.data.mediaId] =
-          action.payload.data;
-
-        // Update in media ratings if present
-        if (state.mediaRatings[action.payload.data.mediaId]) {
-          const mediaRatingIndex = state.mediaRatings[
-            action.payload.data.mediaId
-          ].findIndex((r) => r.id === action.payload.data.id);
-          if (mediaRatingIndex === -1) {
-            state.mediaRatings[action.payload.data.mediaId].push(
-              action.payload.data
-            );
-          } else {
-            state.mediaRatings[action.payload.data.mediaId][mediaRatingIndex] =
-              action.payload.data;
-          }
-        }
-
+      .addCase(submitUserRating.fulfilled, (state, action) => {
+        const mediaId = action.meta.arg.mediaId;
+        state.ratingStatus[mediaId] = "succeeded";
+        state.userRatings[mediaId] = action.payload.data;
         state.error = null;
       })
-      .addCase(submitRating.rejected, (state, action) => {
-        state.status = "failed";
+      .addCase(submitUserRating.rejected, (state, action) => {
+        const mediaId = action.meta.arg.mediaId;
+        state.ratingStatus[mediaId] = "failed";
         state.error = action.payload as string;
       })
 
-      // Edit rating
-      .addCase(editRating.pending, (state) => {
-        state.status = "loading";
+      // Get user rating
+      .addCase(getUserRating.pending, (state, action) => {
+        const mediaId = action.meta.arg;
+        state.ratingStatus[mediaId] = "loading";
       })
-      .addCase(editRating.fulfilled, (state, action) => {
-        state.status = "succeeded";
-        state.currentRating = action.payload.data;
-
-        // Update in user ratings
-        const userRatingIndex = state.userRatings.findIndex(
-          (r) => r.id === action.payload.data.id
-        );
-        if (userRatingIndex !== -1) {
-          state.userRatings[userRatingIndex] = action.payload.data;
-        }
-
-        // Update the userRatingsByMedia map
-        state.userRatingsByMedia[action.payload.data.mediaId] =
-          action.payload.data;
-
-        // Update in media ratings if present
-        if (state.mediaRatings[action.payload.data.mediaId]) {
-          const mediaRatingIndex = state.mediaRatings[
-            action.payload.data.mediaId
-          ].findIndex((r) => r.id === action.payload.data.id);
-          if (mediaRatingIndex !== -1) {
-            state.mediaRatings[action.payload.data.mediaId][mediaRatingIndex] =
-              action.payload.data;
-          }
-        }
-
+      .addCase(getUserRating.fulfilled, (state, action) => {
+        const { mediaId, rating } = action.payload;
+        state.ratingStatus[mediaId] = "succeeded";
+        state.userRatings[mediaId] = rating;
         state.error = null;
       })
-      .addCase(editRating.rejected, (state, action) => {
-        state.status = "failed";
+      .addCase(getUserRating.rejected, (state, action) => {
+        const mediaId = action.meta.arg;
+        state.ratingStatus[mediaId] = "failed";
         state.error = action.payload as string;
       })
 
       // Remove rating
-      .addCase(removeRating.pending, (state) => {
-        state.status = "loading";
+      .addCase(removeUserRating.pending, (state, action) => {
+        const mediaId = action.meta.arg;
+        state.ratingStatus[mediaId] = "loading";
       })
-      .addCase(removeRating.fulfilled, (state, action) => {
-        state.status = "succeeded";
+      .addCase(removeUserRating.fulfilled, (state, action) => {
+        const mediaId = action.payload;
+        state.ratingStatus[mediaId] = "succeeded";
+        state.userRatings[mediaId] = null;
+        state.error = null;
+      })
+      .addCase(removeUserRating.rejected, (state, action) => {
+        const mediaId = action.meta.arg;
+        state.ratingStatus[mediaId] = "failed";
+        state.error = action.payload as string;
+      })
 
-        // Remove from user ratings
-        state.userRatings = state.userRatings.filter(
-          (r) => r.id !== action.payload
-        );
+      // Submit review
+      .addCase(submitUserReview.pending, (state, action) => {
+        const mediaId = action.meta.arg.mediaId;
+        state.reviewStatus[mediaId] = "loading";
+      })
+      .addCase(submitUserReview.fulfilled, (state, action) => {
+        const mediaId = action.meta.arg.mediaId;
+        state.reviewStatus[mediaId] = "succeeded";
+        state.userReviews[mediaId] = action.payload;
 
-        // Remove from current rating if it's the same
-        if (state.currentRating && state.currentRating.id === action.payload) {
-          state.currentRating = null;
-        }
-
-        // Remove from userRatingsByMedia
-        Object.keys(state.userRatingsByMedia).forEach((mediaId) => {
-          if (state.userRatingsByMedia[mediaId]?.id === action.payload) {
-            state.userRatingsByMedia[mediaId] = null;
-          }
-        });
-
-        // Remove from media ratings if present
-        Object.keys(state.mediaRatings).forEach((mediaId) => {
-          state.mediaRatings[mediaId] = state.mediaRatings[mediaId].filter(
-            (r) => r.id !== action.payload
+        // Update in media reviews if exists
+        if (state.mediaReviews[mediaId]) {
+          const existingIndex = state.mediaReviews[mediaId].findIndex(
+            (review) => review.userId === action.payload.userId
           );
-        });
+
+          if (existingIndex >= 0) {
+            state.mediaReviews[mediaId][existingIndex] = action.payload;
+          } else {
+            state.mediaReviews[mediaId].unshift(action.payload);
+          }
+        }
 
         state.error = null;
       })
-      .addCase(removeRating.rejected, (state, action) => {
-        state.status = "failed";
+      .addCase(submitUserReview.rejected, (state, action) => {
+        const mediaId = action.meta.arg.mediaId;
+        state.reviewStatus[mediaId] = "failed";
         state.error = action.payload as string;
+      })
+
+      // Get user review
+      .addCase(getUserReview.pending, (state, action) => {
+        const mediaId = action.meta.arg;
+        state.reviewStatus[mediaId] = "loading";
+      })
+      .addCase(getUserReview.fulfilled, (state, action) => {
+        const { mediaId, review } = action.payload;
+        state.reviewStatus[mediaId] = "succeeded";
+        state.userReviews[mediaId] = review;
+        state.error = null;
+      })
+      .addCase(getUserReview.rejected, (state, action) => {
+        const mediaId = action.meta.arg;
+        state.reviewStatus[mediaId] = "failed";
+        state.error = action.payload as string;
+      })
+
+      // Get media reviews
+      .addCase(getMediaReviews.pending, (state, action) => {
+        const mediaId = action.meta.arg.mediaId;
+        state.mediaReviewsStatus[mediaId] = "loading";
+      })
+      .addCase(getMediaReviews.fulfilled, (state, action) => {
+        const { mediaId, reviews, pagination } = action.payload;
+        state.mediaReviewsStatus[mediaId] = "succeeded";
+        state.mediaReviews[mediaId] = reviews;
+        state.pagination[mediaId] = pagination;
+        state.error = null;
+      })
+      .addCase(getMediaReviews.rejected, (state, action) => {
+        const mediaId = action.meta.arg.mediaId;
+        state.mediaReviewsStatus[mediaId] = "failed";
+        state.error = action.payload as string;
+      })
+
+      // Remove review
+      .addCase(removeUserReview.pending, (state) => {
+        // We don't need to update status here as it's handled by the component
+      })
+      .addCase(removeUserReview.fulfilled, (state, action) => {
+        const { mediaId, reviewId } = action.payload;
+        state.userReviews[mediaId] = null;
+
+        // Remove from media reviews if exists
+        if (state.mediaReviews[mediaId]) {
+          state.mediaReviews[mediaId] = state.mediaReviews[mediaId].filter(
+            (review) => review.id !== reviewId
+          );
+        }
+
+        state.error = null;
+      })
+      .addCase(removeUserReview.rejected, (state, action) => {
+        state.error = action.payload as string;
+      })
+
+      // Like review
+      .addCase(likeUserReview.fulfilled, (state, action) => {
+        const { mediaId, reviewId } = action.payload;
+
+        // Update in media reviews if exists
+        if (state.mediaReviews[mediaId]) {
+          const reviewIndex = state.mediaReviews[mediaId].findIndex(
+            (review) => review.id === reviewId
+          );
+
+          if (reviewIndex >= 0) {
+            state.mediaReviews[mediaId][reviewIndex].likesCount += 1;
+            state.mediaReviews[mediaId][reviewIndex].isLikedByUser = true;
+          }
+        }
+
+        // Update in user review if it's the same review
+        if (
+          state.userReviews[mediaId] &&
+          state.userReviews[mediaId]?.id === reviewId
+        ) {
+          state.userReviews[mediaId]!.likesCount += 1;
+          state.userReviews[mediaId]!.isLikedByUser = true;
+        }
+
+        state.error = null;
+      })
+
+      // Unlike review
+      .addCase(unlikeUserReview.fulfilled, (state, action) => {
+        const { mediaId, reviewId } = action.payload;
+
+        // Update in media reviews if exists
+        if (state.mediaReviews[mediaId]) {
+          const reviewIndex = state.mediaReviews[mediaId].findIndex(
+            (review) => review.id === reviewId
+          );
+
+          if (reviewIndex >= 0) {
+            state.mediaReviews[mediaId][reviewIndex].likesCount -= 1;
+            state.mediaReviews[mediaId][reviewIndex].isLikedByUser = false;
+          }
+        }
+
+        // Update in user review if it's the same review
+        if (
+          state.userReviews[mediaId] &&
+          state.userReviews[mediaId]?.id === reviewId
+        ) {
+          state.userReviews[mediaId]!.likesCount -= 1;
+          state.userReviews[mediaId]!.isLikedByUser = false;
+        }
+
+        state.error = null;
       });
   },
 });
 
-export const { clearCurrentRating, clearRatings } = ratingsSlice.actions;
+export const { clearRatingState } = ratingsSlice.actions;
 
 // Selectors
-export const selectUserRatings = (state: RootState) =>
-  state.ratings.userRatings;
-export const selectMediaRatings = (mediaId: string) => (state: RootState) =>
-  state.ratings.mediaRatings[mediaId] || [];
-export const selectCurrentRating = (state: RootState) =>
-  state.ratings.currentRating;
-export const selectUserRatingForMedia =
+export const selectUserRating = (mediaId: string) => (state: RootState) =>
+  state.ratings.userRatings[mediaId];
+
+export const selectUserReview = (mediaId: string) => (state: RootState) =>
+  state.ratings.userReviews[mediaId];
+
+export const selectMediaReviews = (mediaId: string) => (state: RootState) =>
+  state.ratings.mediaReviews[mediaId] || [];
+
+export const selectRatingStatus = (mediaId: string) => (state: RootState) =>
+  state.ratings.ratingStatus[mediaId] || "idle";
+
+export const selectReviewStatus = (mediaId: string) => (state: RootState) =>
+  state.ratings.reviewStatus[mediaId] || "idle";
+
+export const selectMediaReviewsStatus =
   (mediaId: string) => (state: RootState) =>
-    state.ratings.userRatingsByMedia[mediaId] || null;
-export const selectRatingsStatus = (state: RootState) => state.ratings.status;
+    state.ratings.mediaReviewsStatus[mediaId] || "idle";
+
+export const selectReviewsPagination =
+  (mediaId: string) => (state: RootState) =>
+    state.ratings.pagination[mediaId];
+
 export const selectRatingsError = (state: RootState) => state.ratings.error;
-export const selectRatingsPagination = (state: RootState) =>
-  state.ratings.pagination;
 
 export default ratingsSlice.reducer;
