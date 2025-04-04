@@ -1,4 +1,4 @@
-import { body, param } from "express-validator";
+import { body, param, query } from "express-validator";
 
 export const createRatingValidation = [
   body("mediaId").isUUID().withMessage("Valid media ID is required"),
@@ -28,4 +28,19 @@ export const getMediaRatingsValidation = [
 
 export const getUserRatingsValidation = [
   param("userId").isUUID().withMessage("Valid user ID is required"),
+];
+
+export const userRatingsQueryValidation = [
+  query("mediaId")
+    .optional()
+    .isUUID()
+    .withMessage("Media ID must be a valid UUID"),
+  query("page")
+    .optional()
+    .isInt({ min: 1 })
+    .withMessage("Page must be a positive integer"),
+  query("limit")
+    .optional()
+    .isInt({ min: 1, max: 100 })
+    .withMessage("Limit must be between 1 and 100"),
 ];
