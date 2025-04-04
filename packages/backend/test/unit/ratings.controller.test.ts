@@ -183,8 +183,7 @@ describe("Ratings Controller", () => {
       expect(ratingsService.getUserRatings).toHaveBeenCalledWith(
         "user-123",
         1,
-        10,
-        undefined
+        10
       );
       expect(sendSuccess).toHaveBeenCalledWith(
         mockResponse,
@@ -223,8 +222,7 @@ describe("Ratings Controller", () => {
       expect(ratingsService.getUserRatings).toHaveBeenCalledWith(
         "user-123",
         1,
-        10,
-        undefined
+        10
       );
     });
   });
