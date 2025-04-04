@@ -82,6 +82,7 @@ export const config = {
     process.env.RECOMMENDATION_UPDATE_INTERVAL || "0 */6 * * *", // Default: every 6 hours
 
   TZ: process.env.TZ || "UTC",
+  CLIENT_URL: process.env.CLIENT_URL || "http://localhost:3000",
 };
 
 // Export the environment type for easier type checking
