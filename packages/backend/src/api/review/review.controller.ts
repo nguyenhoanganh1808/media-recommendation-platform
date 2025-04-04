@@ -152,6 +152,18 @@ export class ReviewController {
       sendSuccess(res, updatedReview, "Review liked successfully");
     }
   );
+
+  /**
+   * Unlike a review
+   */
+  unlikeReview = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const reviewId = req.params.id;
+      const updatedReview = await reviewService.unlikeReview(reviewId);
+
+      sendSuccess(res, updatedReview, "Review liked successfully");
+    }
+  );
 }
 
 export default new ReviewController();

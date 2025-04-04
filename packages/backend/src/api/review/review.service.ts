@@ -299,6 +299,30 @@ export class ReviewService {
 
     return updatedReview;
   }
+
+  /**
+   * Like a review (increment the likes count)
+   */
+  async unlikeReview(reviewId: string): Promise<MediaReview> {
+    // Check if review exists
+    const review = await prisma.mediaReview.findUnique({
+      where: { id: reviewId },
+    });
+
+    if (!review) {
+      throw new AppError("Review not found", 404, "REVIEW_NOT_FOUND");
+    }
+
+    // Increment the likes count
+    const updatedReview = await prisma.mediaReview.update({
+      where: { id: reviewId },
+      data: {
+        likesCount: { decrement: 1 },
+      },
+    });
+
+    return updatedReview;
+  }
 }
 
 export default new ReviewService();

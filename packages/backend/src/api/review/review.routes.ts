@@ -77,6 +77,14 @@ router.post(
   reviewController.likeReview
 );
 
+// UnLike a review (authenticated)
+router.delete(
+  "/:id/like",
+  authenticate,
+  validate(likeReviewValidation),
+  reviewController.likeReview
+);
+
 // Admin route to get all reviews (including hidden)
 router.get(
   "/admin/all",
