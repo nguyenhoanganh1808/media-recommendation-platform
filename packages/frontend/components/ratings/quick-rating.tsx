@@ -31,7 +31,7 @@ export function QuickRating({ mediaId, className }: QuickRatingProps) {
   return (
     <div className={`flex items-center text-yellow-500 ${className}`}>
       <Star className="h-3 w-3 fill-current" />
-      <span className="ml-1 text-xs font-medium">{userRating.score}</span>
+      <span className="ml-1 text-xs font-medium">{userRating.rating}</span>
     </div>
   );
 }

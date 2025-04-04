@@ -20,7 +20,7 @@ export interface Rating {
   id: string;
   userId: string;
   mediaId: string;
-  score: number;
+  rating: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -113,7 +113,7 @@ export const getUserRating = createAsyncThunk(
     try {
       const response = await fetchUserRating(mediaId);
       console.log("response: ", response);
-      return { mediaId, rating: response.data[0] };
+      return { mediaId, rating: response.data };
     } catch (error) {
       if ((error as Error).message.includes("not found")) {
         return { mediaId, rating: null };

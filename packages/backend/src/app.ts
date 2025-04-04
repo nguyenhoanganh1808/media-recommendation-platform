@@ -86,7 +86,7 @@ if (config.NODE_ENV === "development") {
 }
 
 // Swagger documentation
-setupSwaggerRoutes(app);
+// setupSwaggerRoutes(app);
 
 // Health check endpoint
 app.get("/health", (_req: Request, res: Response) => {

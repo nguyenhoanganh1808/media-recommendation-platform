@@ -46,17 +46,17 @@ export function StarRating({
   // Notify parent component when rating changes
   useEffect(() => {
     if (onRatingChange) {
-      onRatingChange(userRating?.score || null);
+      onRatingChange(userRating?.rating || null);
     }
   }, [userRating, onRatingChange]);
 
   const handleRatingClick = async (rating: number) => {
     try {
       // If clicking the same rating, do nothing
-      if (userRating?.score === rating) return;
+      if (userRating?.rating === rating) return;
 
       // Optimistic update
-      const previousRating = userRating?.score || null;
+      const previousRating = userRating?.rating || null;
 
       // Dispatch the action
       await dispatch(submitUserRating({ mediaId, rating: rating })).unwrap();
@@ -89,6 +89,7 @@ export function StarRating({
       setIsDeleting(false);
     }
   };
+  console.log("userRating: ", userRating);
 
   // Determine star size based on prop
   const starSize =
@@ -123,7 +124,7 @@ export function StarRating({
                 (
                   hoverRating !== null
                     ? rating <= hoverRating
-                    : rating <= (userRating?.score || 0)
+                    : rating <= (userRating?.rating || 0)
                 )
                   ? "text-yellow-500 fill-yellow-500"
                   : "text-gray-300 dark:text-gray-600"
@@ -153,7 +154,7 @@ export function StarRating({
       {userRating && (
         <p className="text-sm text-muted-foreground mt-1">
           Your rating:{" "}
-          <span className="font-medium">{userRating.score}/10</span>
+          <span className="font-medium">{userRating.rating}/10</span>
         </p>
       )}
     </div>

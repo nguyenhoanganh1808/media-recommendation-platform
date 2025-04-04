@@ -4,6 +4,7 @@ import { MediaRating } from "@prisma/client";
 import { AppError } from "../../middlewares/error.middleware";
 import { clearCacheByPattern } from "../../middlewares/cache.middleware";
 import { createPagination } from "../../utils/responseFormatter";
+import { logger } from "../../config/logger";
 
 /**
  * Create a new media rating
@@ -218,7 +219,15 @@ export const getUserMediaRating = async (
   userId: string,
   mediaId: string
 ): Promise<MediaRating | null> => {
-  return prisma.mediaRating.findUnique({
+  // Check if media exists
+  const media = await prisma.media.findUnique({
+    where: { id: mediaId },
+  });
+  if (!media) {
+    throw new AppError("Media not found", 404, "MEDIA_NOT_FOUND");
+  }
+
+  const rating = await prisma.mediaRating.findUnique({
     where: {
       userId_mediaId: {
         userId,
@@ -226,6 +235,8 @@ export const getUserMediaRating = async (
       },
     },
   });
+
+  return rating;
 };
 
 /**

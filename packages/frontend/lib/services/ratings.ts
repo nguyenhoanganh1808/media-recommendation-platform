@@ -41,7 +41,7 @@ export const submitRating = async (
 // Fetch user's rating for a media
 export const fetchUserRating = async (
   mediaId: string
-): Promise<{ data: Rating[] }> => {
+): Promise<RatingResponse> => {
   try {
     const response = await api.get(`/ratings/user/media/${mediaId}`);
     return response.data;

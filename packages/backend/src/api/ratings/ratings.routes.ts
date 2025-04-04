@@ -292,7 +292,7 @@ router.get(
 router.get(
   "/user/media/:mediaId",
   validate(getUserMediaRatingValidation),
-  userCacheMiddleware({ ttl: 300 }),
+  // userCacheMiddleware({ ttl: 300 }),
   ratingsController.getUserMediaRating
 );
 
