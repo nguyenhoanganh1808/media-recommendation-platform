@@ -16,6 +16,8 @@ import { StarRating } from "./star-rating";
 // import { ReviewList } from "./review-list"
 import { AlertCircle } from "lucide-react";
 import type { RootState } from "@/lib/store";
+import { ReviewForm } from "./review-form";
+import { ReviewList } from "./review-list";
 
 interface MediaRatingReviewsProps {
   mediaId: string;
@@ -101,12 +103,12 @@ export function MediaRatingReviews({
           </TabsContent>
 
           <TabsContent value="review" className="space-y-4">
-            {/* <ReviewForm mediaId={mediaId} /> */}
+            <ReviewForm mediaId={mediaId} />
           </TabsContent>
         </Tabs>
 
         <div className="mt-8 pt-4 border-t">
-          {/* <ReviewList mediaId={mediaId} /> */}
+          <ReviewList mediaId={mediaId} />
         </div>
       </CardContent>
     </Card>
