@@ -43,7 +43,7 @@ export const fetchUserRating = async (
   mediaId: string
 ): Promise<{ data: Rating[] }> => {
   try {
-    const response = await api.get(`/ratings/me?mediaId=${mediaId}`);
+    const response = await api.get(`/ratings/user/media/${mediaId}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
