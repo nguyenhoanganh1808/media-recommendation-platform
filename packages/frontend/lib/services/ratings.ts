@@ -43,7 +43,7 @@ export const fetchUserRating = async (
   mediaId: string
 ): Promise<{ data: Rating[] }> => {
   try {
-    const response = await api.get(`/api/ratings/me?mediaId=${mediaId}`);
+    const response = await api.get(`/ratings/me?mediaId=${mediaId}`);
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -58,7 +58,7 @@ export const fetchUserRating = async (
 // Delete a rating
 export const deleteRating = async (mediaId: string): Promise<void> => {
   try {
-    await api.delete(`/api/ratings?mediaId=${mediaId}`);
+    await api.delete(`/ratings?mediaId=${mediaId}`);
   } catch (error) {
     if (axios.isAxiosError(error)) {
       throw new Error(

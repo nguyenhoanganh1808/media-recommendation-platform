@@ -31,10 +31,6 @@ export const getUserRatingsValidation = [
 ];
 
 export const userRatingsQueryValidation = [
-  query("mediaId")
-    .optional()
-    .isUUID()
-    .withMessage("Media ID must be a valid UUID"),
   query("page")
     .optional()
     .isInt({ min: 1 })
@@ -43,4 +39,9 @@ export const userRatingsQueryValidation = [
     .optional()
     .isInt({ min: 1, max: 100 })
     .withMessage("Limit must be between 1 and 100"),
+];
+
+// Add this to ratings.validation.ts
+export const getUserMediaRatingValidation = [
+  param("mediaId").isUUID().withMessage("Valid media ID is required"),
 ];

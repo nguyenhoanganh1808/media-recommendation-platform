@@ -55,14 +55,8 @@ export const getUserRatings = asyncHandler(
     const userId = req.params.userId || req.user!.id;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const mediaId = req.query.mediaId as string | undefined;
 
-    const result = await ratingsService.getUserRatings(
-      userId,
-      page,
-      limit,
-      mediaId
-    );
+    const result = await ratingsService.getUserRatings(userId, page, limit);
 
     sendSuccess(
       res,
@@ -89,5 +83,16 @@ export const getMediaRatings = asyncHandler(
       200,
       { pagination: result.pagination }
     );
+  }
+);
+
+export const getUserMediaRating = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { mediaId } = req.params;
+    const userId = req.user!.id;
+
+    const rating = await ratingsService.getUserMediaRating(userId, mediaId);
+
+    sendSuccess(res, rating, "User media rating retrieved successfully");
   }
 );

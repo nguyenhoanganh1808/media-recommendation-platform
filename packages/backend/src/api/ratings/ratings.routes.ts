@@ -12,6 +12,7 @@ import {
   deleteRatingValidation,
   getMediaRatingsValidation,
   getRatingValidation,
+  getUserMediaRatingValidation,
   getUserRatingsValidation,
   updateRatingValidation,
   userRatingsQueryValidation,
@@ -258,6 +259,41 @@ router.get(
   validate(getRatingValidation),
   userCacheMiddleware({ ttl: 300 }),
   ratingsController.getRating
+);
+
+/**
+ * @openapi
+ * /api/ratings/user/media/{mediaId}:
+ *   get:
+ *     summary: Get a user's rating for a specific media
+ *     tags: [Ratings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: mediaId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: Unique identifier of the media
+ *     responses:
+ *       200:
+ *         description: Successfully retrieved user rating for media
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Rating'
+ *       401:
+ *         $ref: '#/components/responses/UnauthorizedError'
+ *       404:
+ *         $ref: '#/components/responses/NotFoundError'
+ */
+router.get(
+  "/user/media/:mediaId",
+  validate(getUserMediaRatingValidation),
+  userCacheMiddleware({ ttl: 300 }),
+  ratingsController.getUserMediaRating
 );
 
 /**
