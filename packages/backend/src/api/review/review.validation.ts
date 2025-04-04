@@ -60,3 +60,11 @@ export const likeReviewValidation = [
     .isUUID()
     .withMessage("Invalid review ID format"),
 ];
+
+export const getUserMediaReviewValidation = [
+  param("mediaId")
+    .notEmpty()
+    .withMessage("Media ID is required")
+    .isUUID()
+    .withMessage("Invalid media ID format"),
+];

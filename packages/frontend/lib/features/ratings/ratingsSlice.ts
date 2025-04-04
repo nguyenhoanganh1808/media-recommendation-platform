@@ -33,7 +33,6 @@ export interface Review {
   containsSpoilers: boolean;
   isPublic: boolean;
   likesCount: number;
-  isLikedByUser: boolean;
   createdAt: string;
   updatedAt: string;
   user: {
@@ -41,9 +40,6 @@ export interface Review {
     name: string;
     username: string;
     avatar: string;
-  };
-  rating?: {
-    score: number;
   };
 }
 
@@ -177,7 +173,7 @@ export const getUserReview = createAsyncThunk(
   async (mediaId: string, { rejectWithValue }) => {
     try {
       const response = await fetchUserReview(mediaId);
-      return { mediaId, review: response };
+      return { mediaId, review: response.data };
     } catch (error) {
       if ((error as Error).message.includes("not found")) {
         return { mediaId, review: null };
@@ -330,18 +326,18 @@ const ratingsSlice = createSlice({
       .addCase(submitUserReview.fulfilled, (state, action) => {
         const mediaId = action.meta.arg.mediaId;
         state.reviewStatus[mediaId] = "succeeded";
-        state.userReviews[mediaId] = action.payload;
+        state.userReviews[mediaId] = action.payload.data;
 
         // Update in media reviews if exists
         if (state.mediaReviews[mediaId]) {
           const existingIndex = state.mediaReviews[mediaId].findIndex(
-            (review) => review.userId === action.payload.userId
+            (review) => review.userId === action.payload.data.userId
           );
 
           if (existingIndex >= 0) {
-            state.mediaReviews[mediaId][existingIndex] = action.payload;
+            state.mediaReviews[mediaId][existingIndex] = action.payload.data;
           } else {
-            state.mediaReviews[mediaId].unshift(action.payload);
+            state.mediaReviews[mediaId].unshift(action.payload.data);
           }
         }
 
@@ -421,7 +417,7 @@ const ratingsSlice = createSlice({
 
           if (reviewIndex >= 0) {
             state.mediaReviews[mediaId][reviewIndex].likesCount += 1;
-            state.mediaReviews[mediaId][reviewIndex].isLikedByUser = true;
+            // state.mediaReviews[mediaId][reviewIndex].isLikedByUser = true;
           }
         }
 
@@ -431,7 +427,7 @@ const ratingsSlice = createSlice({
           state.userReviews[mediaId]?.id === reviewId
         ) {
           state.userReviews[mediaId]!.likesCount += 1;
-          state.userReviews[mediaId]!.isLikedByUser = true;
+          // state.userReviews[mediaId]!.isLikedByUser = true;
         }
 
         state.error = null;
@@ -449,7 +445,7 @@ const ratingsSlice = createSlice({
 
           if (reviewIndex >= 0) {
             state.mediaReviews[mediaId][reviewIndex].likesCount -= 1;
-            state.mediaReviews[mediaId][reviewIndex].isLikedByUser = false;
+            // state.mediaReviews[mediaId][reviewIndex].isLikedByUser = false;
           }
         }
 
@@ -459,7 +455,7 @@ const ratingsSlice = createSlice({
           state.userReviews[mediaId]?.id === reviewId
         ) {
           state.userReviews[mediaId]!.likesCount -= 1;
-          state.userReviews[mediaId]!.isLikedByUser = false;
+          // state.userReviews[mediaId]!.isLikedByUser = false;
         }
 
         state.error = null;
