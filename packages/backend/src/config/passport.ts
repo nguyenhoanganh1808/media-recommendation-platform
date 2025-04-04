@@ -1,9 +1,9 @@
-import passport from 'passport';
-import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
-import { Strategy as LocalStrategy } from 'passport-local';
-import { prisma } from './database';
-import { config } from './env';
-import { comparePasswords } from '../utils/password';
+import passport from "passport";
+import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
+import { Strategy as LocalStrategy } from "passport-local";
+import { prisma } from "./database";
+import { config } from "./env";
+import { comparePasswords } from "../utils/password";
 // import { comparePassword } from '../utils/password';
 
 interface JwtPayload {
@@ -16,8 +16,8 @@ interface JwtPayload {
 passport.use(
   new LocalStrategy(
     {
-      usernameField: 'email',
-      passwordField: 'password',
+      usernameField: "email",
+      passwordField: "password",
     },
     async (email, password, done) => {
       try {
@@ -28,19 +28,19 @@ passport.use(
 
         // Check if user exists
         if (!user) {
-          return done(null, false, { message: 'Incorrect email or password' });
+          return done(null, false, { message: "Incorrect email or password" });
         }
 
         // Check if user is active
         if (!user.isActive) {
-          return done(null, false, { message: 'User account is disabled' });
+          return done(null, false, { message: "User account is disabled" });
         }
 
         // Validate password
         const isPasswordValid = await comparePasswords(password, user.password);
 
         if (!isPasswordValid) {
-          return done(null, false, { message: 'Incorrect email or password' });
+          return done(null, false, { message: "Incorrect email or password" });
         }
 
         // Return user without password
@@ -62,7 +62,7 @@ const cookieExtractor = (req: any) => {
 
 // Configure JWT strategy for token-based authentication
 passport.use(
-  'jwt',
+  "jwt",
   new JwtStrategy(
     {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -92,7 +92,7 @@ passport.use(
 
 // Configure JWT Refresh Token strategy
 passport.use(
-  'jwt-refresh',
+  "jwt-refresh",
   new JwtStrategy(
     {
       jwtFromRequest: cookieExtractor,
@@ -102,6 +102,7 @@ passport.use(
     async (req, jwtPayload: JwtPayload, done) => {
       try {
         // Validate the refresh token exists in the database
+
         const refreshToken = await prisma.refreshToken.findFirst({
           where: {
             userId: jwtPayload.userId,
@@ -111,19 +112,23 @@ passport.use(
             },
           },
         });
+        console.log("refreshToken: ", req.body.refreshToken);
+        console.log("refreshToken: ", refreshToken);
+        console.log("userId: ", jwtPayload);
 
         if (!refreshToken) {
-          return done(null, false, { message: 'Invalid refresh token' });
+          return done(null, false, { message: "Invalid refresh token" });
         }
 
         // Find the user
         const user = await prisma.user.findUnique({
           where: { id: jwtPayload.userId },
         });
+        console.log("user: ", user);
 
         // Check if user exists and is active
         if (!user || !user.isActive) {
-          return done(null, false, { message: 'User not found or inactive' });
+          return done(null, false, { message: "User not found or inactive" });
         }
 
         // Return user without password

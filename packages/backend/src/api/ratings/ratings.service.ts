@@ -50,27 +50,6 @@ export const createRating = async (
         mediaId,
         rating,
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        media: {
-          select: {
-            id: true,
-            title: true,
-            coverImage: true,
-            mediaType: true,
-            averageRating: true,
-            ratingsCount: true,
-          },
-        },
-      },
     });
 
     // Update media average rating and count
@@ -133,27 +112,6 @@ export const updateRating = async (
     const mediaRating = await tx.mediaRating.update({
       where: { id: ratingId },
       data: { rating },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            username: true,
-            avatar: true,
-          },
-        },
-        media: {
-          select: {
-            id: true,
-            title: true,
-            coverImage: true,
-            mediaType: true,
-            averageRating: true,
-            ratingsCount: true,
-          },
-        },
-      },
     });
 
     const { mediaId } = mediaRating;
@@ -244,27 +202,6 @@ export const deleteRating = async (
 export const getRatingById = async (ratingId: string): Promise<MediaRating> => {
   const rating = await prisma.mediaRating.findUnique({
     where: { id: ratingId },
-    include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          username: true,
-          avatar: true,
-        },
-      },
-      media: {
-        select: {
-          id: true,
-          title: true,
-          coverImage: true,
-          mediaType: true,
-          averageRating: true,
-          ratingsCount: true,
-        },
-      },
-    },
   });
 
   if (!rating) {
@@ -286,27 +223,6 @@ export const getUserMediaRating = async (
       userId_mediaId: {
         userId,
         mediaId,
-      },
-    },
-    include: {
-      user: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          username: true,
-          avatar: true,
-        },
-      },
-      media: {
-        select: {
-          id: true,
-          title: true,
-          coverImage: true,
-          mediaType: true,
-          averageRating: true,
-          ratingsCount: true,
-        },
       },
     },
   });
@@ -332,20 +248,8 @@ export const getMediaRatings = async (
         user: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
             username: true,
             avatar: true,
-          },
-        },
-        media: {
-          select: {
-            id: true,
-            title: true,
-            coverImage: true,
-            mediaType: true,
-            averageRating: true,
-            ratingsCount: true,
           },
         },
       },
@@ -392,15 +296,6 @@ export const getUserRatings = async (
       take: limit,
       orderBy: { createdAt: "desc" },
       include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            username: true,
-            avatar: true,
-          },
-        },
         media: {
           select: {
             id: true,
@@ -408,7 +303,6 @@ export const getUserRatings = async (
             coverImage: true,
             mediaType: true,
             averageRating: true,
-            ratingsCount: true,
           },
         },
       },
