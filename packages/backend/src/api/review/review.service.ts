@@ -120,6 +120,42 @@ export class ReviewService {
   /**
    * Get reviews by a specific user
    */
+  async getUserMediaReview(
+    userId: string,
+    mediaId: string
+  ): Promise<MediaReview | null> {
+    const review = await prisma.mediaReview.findFirst({
+      where: {
+        userId,
+        mediaId,
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+            avatar: true,
+          },
+        },
+        media: {
+          select: {
+            id: true,
+            title: true,
+            mediaType: true,
+            coverImage: true,
+          },
+        },
+      },
+    });
+    if (!review) {
+      throw new AppError("Review not found", 404, "REVIEW_NOT_FOUND");
+    }
+    return review;
+  }
+
+  /**
+   * Get reviews by a specific user
+   */
   async getUserReviews(
     userId: string,
     page: number = 1,

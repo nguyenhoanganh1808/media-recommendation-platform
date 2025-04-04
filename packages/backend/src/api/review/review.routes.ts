@@ -12,8 +12,12 @@ import {
   updateReviewValidation,
   deleteReviewValidation,
   likeReviewValidation,
+  getUserMediaReviewValidation,
 } from "./review.validation";
-import { cacheMiddleware } from "../../middlewares/cache.middleware";
+import {
+  cacheMiddleware,
+  userCacheMiddleware,
+} from "../../middlewares/cache.middleware";
 
 const router = Router();
 
@@ -47,6 +51,15 @@ router.get(
       `${req.params.userId}:page:${req.query.page || 1}:limit:${req.query.limit || 10}`,
   }),
   reviewController.getUserReviews
+);
+
+// Get review by media ID and user ID (cached)
+router.get(
+  "/user/media/:mediaId",
+  authenticate,
+  validate(getUserMediaReviewValidation),
+  userCacheMiddleware({ ttl: 300 }),
+  reviewController.getUserMediaReview
 );
 
 // Get a single review by ID

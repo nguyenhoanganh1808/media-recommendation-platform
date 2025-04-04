@@ -106,6 +106,19 @@ export class ReviewController {
   );
 
   /**
+   * Get a user's review for a specific media
+   */
+  getUserMediaReview = asyncHandler(
+    async (req: Request, res: Response, next: NextFunction) => {
+      const mediaId = req.params.mediaId;
+      const userId = req.user!.id;
+      const review = await reviewService.getUserMediaReview(userId, mediaId);
+
+      sendSuccess(res, review, "User media review retrieved successfully");
+    }
+  );
+
+  /**
    * Update a review
    */
   updateReview = asyncHandler(
