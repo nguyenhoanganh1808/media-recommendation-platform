@@ -103,6 +103,8 @@ export class ReviewService {
           user: {
             select: {
               id: true,
+              firstName: true,
+              lastName: true,
               username: true,
               avatar: true,
             },
@@ -133,6 +135,8 @@ export class ReviewService {
         user: {
           select: {
             id: true,
+            firstName: true,
+            lastLogin: true,
             username: true,
             avatar: true,
           },

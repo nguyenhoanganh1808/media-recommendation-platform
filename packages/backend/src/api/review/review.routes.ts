@@ -58,7 +58,7 @@ router.get(
   "/user/media/:mediaId",
   authenticate,
   validate(getUserMediaReviewValidation),
-  userCacheMiddleware({ ttl: 300 }),
+  // userCacheMiddleware({ ttl: 300 }),
   reviewController.getUserMediaReview
 );
 

@@ -212,10 +212,10 @@ export function ReviewList({ mediaId, className }: ReviewListProps) {
                     <Avatar>
                       <AvatarImage
                         src={review.user.avatar}
-                        alt={review.user.name}
+                        alt={review.user.firstName}
                       />
                       <AvatarFallback>
-                        {review.user.name.charAt(0)}
+                        {review.user.firstName.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
@@ -223,7 +223,7 @@ export function ReviewList({ mediaId, className }: ReviewListProps) {
                         href={`/users/${review.user.id}`}
                         className="font-medium hover:underline"
                       >
-                        {review.user.name}
+                        {review.user.firstName}
                       </Link>
                       <p className="text-sm text-muted-foreground">
                         @{review.user.username}
