@@ -55,8 +55,14 @@ export const getUserRatings = asyncHandler(
     const userId = req.params.userId || req.user!.id;
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
+    const mediaId = req.query.mediaId as string | undefined;
 
-    const result = await ratingsService.getUserRatings(userId, page, limit);
+    const result = await ratingsService.getUserRatings(
+      userId,
+      page,
+      limit,
+      mediaId
+    );
 
     sendSuccess(
       res,

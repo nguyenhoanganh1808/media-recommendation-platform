@@ -366,7 +366,8 @@ export const getMediaRatings = async (
 export const getUserRatings = async (
   userId: string,
   page: number = 1,
-  limit: number = 10
+  limit: number = 10,
+  mediaId?: string
 ): Promise<{ ratings: MediaRating[]; pagination: any }> => {
   const skip = (page - 1) * limit;
 
@@ -379,9 +380,14 @@ export const getUserRatings = async (
     throw new AppError("User not found", 404, "USER_NOT_FOUND");
   }
 
+  const whereClause: any = { userId };
+  if (mediaId) {
+    whereClause.mediaId = mediaId;
+  }
+
   const [ratings, total] = await Promise.all([
     prisma.mediaRating.findMany({
-      where: { userId },
+      where: whereClause,
       skip,
       take: limit,
       orderBy: { createdAt: "desc" },
@@ -408,7 +414,7 @@ export const getUserRatings = async (
       },
     }),
     prisma.mediaRating.count({
-      where: { userId },
+      where: whereClause,
     }),
   ]);
 

@@ -14,6 +14,7 @@ import {
   getRatingValidation,
   getUserRatingsValidation,
   updateRatingValidation,
+  userRatingsQueryValidation,
 } from "./ratings.validation";
 import { userCacheMiddleware } from "../../middlewares/cache.middleware";
 import { Role } from "@prisma/client";
@@ -110,6 +111,7 @@ router.post(
  */
 router.get(
   "/me",
+  validate(userRatingsQueryValidation),
   userCacheMiddleware({ ttl: 300 }),
   ratingsController.getUserRatings
 );
@@ -163,6 +165,7 @@ router.get(
  */
 router.get(
   "/user/:userId",
+  validate(userRatingsQueryValidation),
   validate(getUserRatingsValidation),
   userCacheMiddleware({ ttl: 300 }),
   ratingsController.getUserRatings
