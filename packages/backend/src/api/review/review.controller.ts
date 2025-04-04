@@ -14,7 +14,7 @@ export class ReviewController {
    */
   createReview = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
-      const { mediaId, content, isVisible } = req.body;
+      const { mediaId, content, isVisible, containsSpoilers } = req.body;
       const userId = req.user!.id;
 
       const review = await reviewService.createReview({
@@ -22,6 +22,7 @@ export class ReviewController {
         mediaId,
         content,
         isVisible,
+        containsSpoilers,
       });
 
       sendSuccess(res, review, "Review created successfully", 201);
@@ -110,14 +111,14 @@ export class ReviewController {
   updateReview = asyncHandler(
     async (req: Request, res: Response, next: NextFunction) => {
       const reviewId = req.params.id;
-      const { content, isVisible } = req.body;
+      const { content, isVisible, containsSpoilers } = req.body;
       const userId = req.user!.id;
       const userRole = req.user!.role as Role;
 
       const updatedReview = await reviewService.updateReview(
         reviewId,
         userId,
-        { content, isVisible },
+        { content, isVisible, containsSpoilers },
         userRole
       );
 

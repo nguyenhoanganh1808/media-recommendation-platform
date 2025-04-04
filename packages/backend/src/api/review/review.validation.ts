@@ -17,6 +17,10 @@ export const createReviewValidation = [
     .optional()
     .isBoolean()
     .withMessage("isVisible must be a boolean value"),
+  body("containsSpoilers")
+    .optional()
+    .isBoolean()
+    .withMessage("containsSpoilers must be a boolean value"),
 ];
 
 export const updateReviewValidation = [
@@ -35,6 +39,10 @@ export const updateReviewValidation = [
     .optional()
     .isBoolean()
     .withMessage("isVisible must be a boolean value"),
+  body("containsSpoilers")
+    .optional()
+    .isBoolean()
+    .withMessage("containsSpoilers must be a boolean value"),
 ];
 
 export const deleteReviewValidation = [

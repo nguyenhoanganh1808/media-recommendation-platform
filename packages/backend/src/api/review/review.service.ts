@@ -10,11 +10,13 @@ interface CreateReviewData {
   mediaId: string;
   content: string;
   isVisible?: boolean;
+  containsSpoilers?: boolean;
 }
 
 interface UpdateReviewData {
   content?: string;
   isVisible?: boolean;
+  containsSpoilers?: boolean;
 }
 
 export class ReviewService {
@@ -54,6 +56,7 @@ export class ReviewService {
         mediaId: data.mediaId,
         content: data.content,
         isVisible: data.isVisible !== undefined ? data.isVisible : true,
+        containsSpoilers: data.containsSpoilers,
       },
       include: {
         user: {
