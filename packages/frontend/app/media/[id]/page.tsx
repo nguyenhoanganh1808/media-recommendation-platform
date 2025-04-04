@@ -18,9 +18,9 @@ import {
   selectSimilarStatus,
 } from "@/lib/features/recommendations/recommendationsSlice";
 import { MediaCarousel } from "@/components/media/media-carousel";
-import { RatingInput } from "@/components/ratings/rating-form";
 import { StarRating } from "@/components/ratings/star-rating";
-import { fetchMediaRatings } from "@/lib/features/ratings/ratingsSlice";
+import { MediaRatingReviews } from "@/components/ratings/media-rating-reviews";
+import { SimilarRecommendations } from "@/components/ratings/similar-recommendations";
 
 export default function MediaDetailsPage() {
   const params = useParams();
@@ -42,10 +42,6 @@ export default function MediaDetailsPage() {
         const data = await fetchMediaDetails(mediaId);
         setMedia(data);
         setError(null);
-
-        // Fetch similar media recommendations
-        dispatch(fetchSimilar(mediaId));
-        dispatch(fetchMediaRatings({ mediaId, limit: 100 }));
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to load media details"
@@ -159,11 +155,6 @@ export default function MediaDetailsPage() {
               {media.mediaType}
             </Badge>
           </div>
-          {isAuthenticated && (
-            <div className="mt-6 space-y-4">
-              <RatingInput mediaId={media.id} />
-            </div>
-          )}
         </div>
 
         <div className="w-full md:w-2/3">
@@ -176,9 +167,9 @@ export default function MediaDetailsPage() {
           )}
 
           <div className="flex items-center mt-4 space-x-4">
-            <div className="flex items-center">
-              <StarRating value={media.averageRating} readOnly size="sm" />
-              <span className="ml-2 font-bold">
+            <div className="flex items-center text-yellow-500">
+              <Star className="h-5 w-5 fill-current" />
+              <span className="ml-1 font-bold">
                 {media.averageRating.toFixed(1)}
               </span>
             </div>
@@ -215,16 +206,14 @@ export default function MediaDetailsPage() {
           </div>
         </div>
       </div>
-      {/* Similar Media Recommendations */}
+
+      {/* Rating and Reviews Section */}
       <div className="mt-12">
-        <MediaCarousel
-          title="Similar Media You Might Like"
-          items={similarMedia}
-          isLoading={similarStatus === "loading"}
-          emptyMessage="No similar media found."
-          viewAllHref={`/recommendations?mediaType=${media.mediaType}`}
-        />
+        <MediaRatingReviews mediaId={media.id} mediaTitle={media.title} />
       </div>
+
+      {/* Similar Media Recommendations */}
+      <SimilarRecommendations mediaId={media.id} />
     </div>
   );
 }

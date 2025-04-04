@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Star } from "lucide-react";
 import type { MediaItem } from "@/lib/features/media/mediaSlice";
 import Link from "next/link";
+import { QuickRating } from "../ratings/quick-rating";
 
 interface MediaCardProps {
   media: MediaItem;
@@ -40,6 +41,9 @@ export function MediaCard({ media }: MediaCardProps) {
           >
             {media.mediaType}
           </Badge>
+          <div className="absolute top-2 left-2">
+            <QuickRating mediaId={media.id} />
+          </div>
         </div>
         <CardContent className="p-4">
           <h3 className="font-bold line-clamp-2">{media.title}</h3>
