@@ -1,20 +1,21 @@
-import { Request, Response } from 'express';
-import asyncHandler from '../../utils/asyncHandler';
-import * as ratingsService from './ratings.service';
-import { sendSuccess } from '../../utils/responseFormatter';
+import { Request, Response } from "express";
+import asyncHandler from "../../utils/asyncHandler";
+import * as ratingsService from "./ratings.service";
+import { sendSuccess } from "../../utils/responseFormatter";
 
 export const createRating = asyncHandler(
   async (req: Request, res: Response) => {
-    const { mediaId, rating } = req.body;
+    const { mediaId, rating, review } = req.body;
     const userId = req.user!.id;
 
     const newRating = await ratingsService.createRating(
       userId,
       mediaId,
-      rating
+      rating,
+      review
     );
 
-    sendSuccess(res, newRating, 'Rating created successfully', 201);
+    sendSuccess(res, newRating, "Rating created successfully", 201);
   }
 );
 
@@ -26,7 +27,7 @@ export const updateRating = asyncHandler(
 
     const updatedRating = await ratingsService.updateRating(id, userId, rating);
 
-    sendSuccess(res, updatedRating, 'Rating updated successfully');
+    sendSuccess(res, updatedRating, "Rating updated successfully");
   }
 );
 
@@ -37,7 +38,7 @@ export const deleteRating = asyncHandler(
 
     await ratingsService.deleteRating(id, userId);
 
-    sendSuccess(res, null, 'Rating deleted successfully');
+    sendSuccess(res, null, "Rating deleted successfully");
   }
 );
 
@@ -46,7 +47,7 @@ export const getRating = asyncHandler(async (req: Request, res: Response) => {
 
   const rating = await ratingsService.getRatingById(id);
 
-  sendSuccess(res, rating, 'Rating retrieved successfully');
+  sendSuccess(res, rating, "Rating retrieved successfully");
 });
 
 export const getUserRatings = asyncHandler(
@@ -60,7 +61,7 @@ export const getUserRatings = asyncHandler(
     sendSuccess(
       res,
       result.ratings,
-      'User ratings retrieved successfully',
+      "User ratings retrieved successfully",
       200,
       { pagination: result.pagination }
     );
@@ -78,7 +79,7 @@ export const getMediaRatings = asyncHandler(
     sendSuccess(
       res,
       result.ratings,
-      'Media ratings retrieved successfully',
+      "Media ratings retrieved successfully",
       200,
       { pagination: result.pagination }
     );
