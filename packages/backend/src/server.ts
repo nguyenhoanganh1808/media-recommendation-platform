@@ -4,10 +4,13 @@ import { config } from "./config/env";
 import { connectDB } from "./config/database";
 import { connectRedis } from "./config/redis";
 import { initializeJobs } from "./jobs";
+import { initializeSocketService } from "./services/socketio.service";
 
 const PORT = config.PORT || 3000;
 
 initializeJobs();
+
+initializeSocketService(app);
 
 const server = app.listen(PORT, async () => {
   await connectDB();
