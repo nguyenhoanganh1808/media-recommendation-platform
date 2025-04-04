@@ -5,12 +5,6 @@ export const createRatingValidation = [
   body("rating")
     .isFloat({ min: 1, max: 10 })
     .withMessage("Rating must be a number between 1 and 10"),
-  body("review")
-    .optional()
-    .isString()
-    .trim()
-    .notEmpty()
-    .withMessage("Review content cannot be empty if provided"),
 ];
 
 export const updateRatingValidation = [

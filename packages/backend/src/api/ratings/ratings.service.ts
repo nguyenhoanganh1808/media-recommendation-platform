@@ -11,7 +11,8 @@ import { createPagination } from "../../utils/responseFormatter";
 export const createRating = async (
   userId: string,
   mediaId: string,
-  rating: number
+  rating: number,
+  review?: string
 ): Promise<MediaRating> => {
   // Check if media exists
   const media = await prisma.media.findUnique({
