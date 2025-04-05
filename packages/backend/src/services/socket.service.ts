@@ -1,7 +1,7 @@
 // src/services/socket.service.ts
 import { getSocketIO } from "../config/socket";
 import { logger } from "../config/logger";
-import { Notification } from "@prisma/client";
+import { NotificationType } from "@prisma/client";
 
 // Event types
 export enum SocketEvent {
@@ -18,7 +18,14 @@ export enum SocketEvent {
 // Send a notification to a specific user
 export function sendUserNotification(
   userId: string,
-  notification: Notification
+  notification: {
+    id: string;
+    type: NotificationType;
+    title: string;
+    message: string;
+    data?: any;
+    createdAt: Date;
+  }
 ) {
   try {
     const io = getSocketIO();

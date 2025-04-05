@@ -1,9 +1,10 @@
-import { Prisma, NotificationType } from '@prisma/client';
-import { AppError } from '../../middlewares/error.middleware';
-import { clearCacheByPattern } from '../../middlewares/cache.middleware';
-import { logger } from '../../config/logger';
-import { prisma } from '../../config/database';
-import { createPagination } from '../../utils/responseFormatter';
+import { Prisma, NotificationType } from "@prisma/client";
+import { AppError } from "../../middlewares/error.middleware";
+import { clearCacheByPattern } from "../../middlewares/cache.middleware";
+import { logger } from "../../config/logger";
+import { prisma } from "../../config/database";
+import { createPagination } from "../../utils/responseFormatter";
+import { sendUserNotification } from "../../services/socket.service";
 
 interface PaginationOptions {
   page: number;
@@ -42,7 +43,7 @@ export async function getUserNotifications(
   const notifications = await prisma.notification.findMany({
     where: whereCondition,
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
     skip,
     take: limit,
@@ -71,11 +72,11 @@ export async function markNotificationAsRead(
   });
 
   if (!notification) {
-    throw new AppError('Notification not found', 404);
+    throw new AppError("Notification not found", 404);
   }
 
   if (notification.userId !== userId) {
-    throw new AppError('Unauthorized access to notification', 403);
+    throw new AppError("Unauthorized access to notification", 403);
   }
 
   const updatedNotification = await prisma.notification.update({
@@ -121,11 +122,11 @@ export async function deleteNotification(
   });
 
   if (!notification) {
-    throw new AppError('Notification not found', 404);
+    throw new AppError("Notification not found", 404);
   }
 
   if (notification.userId !== userId) {
-    throw new AppError('Unauthorized access to notification', 403);
+    throw new AppError("Unauthorized access to notification", 403);
   }
 
   await prisma.notification.delete({
@@ -202,6 +203,16 @@ export async function createNotification(
 
   // TODO: Send push notification or email if enabled in settings
 
+  // Send real-time notification via Socket.IO
+  sendUserNotification(userId, {
+    id: notification.id,
+    type: notification.type,
+    title: notification.title,
+    message: notification.message,
+    data: notification.data,
+    createdAt: notification.createdAt,
+  });
+
   return notification;
 }
 
@@ -257,7 +268,7 @@ export async function createSystemNotification(
 
   return createBulkNotifications(
     userIds,
-    'SYSTEM_NOTIFICATION',
+    "SYSTEM_NOTIFICATION",
     title,
     message,
     data
@@ -303,17 +314,17 @@ function shouldSendNotification(
   settings: NotificationSettings
 ): boolean {
   switch (type) {
-    case 'NEW_RECOMMENDATION':
+    case "NEW_RECOMMENDATION":
       return settings.newRecommendation;
-    case 'NEW_FOLLOWER':
+    case "NEW_FOLLOWER":
       return settings.newFollower;
-    case 'NEW_RATING':
+    case "NEW_RATING":
       return settings.newRating;
-    case 'NEW_REVIEW':
+    case "NEW_REVIEW":
       return settings.newReview;
-    case 'LIST_SHARE':
+    case "LIST_SHARE":
       return settings.listShare;
-    case 'SYSTEM_NOTIFICATION':
+    case "SYSTEM_NOTIFICATION":
       return settings.systemNotification;
     default:
       return true;
