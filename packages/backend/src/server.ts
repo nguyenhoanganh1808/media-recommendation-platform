@@ -1,18 +1,20 @@
+import http from "http";
 import app from "./app";
 import { logger } from "./config/logger";
 import { config } from "./config/env";
 import { connectDB } from "./config/database";
 import { connectRedis } from "./config/redis";
 import { initializeJobs } from "./jobs";
-import { initializeSocketService } from "./services/socketio.service";
+import { initializeSocket } from "./config/socket";
 
 const PORT = config.PORT || 3000;
 
 initializeJobs();
 
-initializeSocketService(app);
+const server = http.createServer(app);
+initializeSocket(server);
 
-const server = app.listen(PORT, async () => {
+server.listen(PORT, async () => {
   await connectDB();
   await connectRedis();
   logger.info(`🚀 Server started on port ${PORT} in ${config.NODE_ENV} mode`);
