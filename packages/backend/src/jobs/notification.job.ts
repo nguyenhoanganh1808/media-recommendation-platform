@@ -1,5 +1,5 @@
 // src/jobs/notification.job.ts
-import { PrismaClient } from "@prisma/client";
+import { Notification, PrismaClient, User } from "@prisma/client";
 import { logger } from "../config/logger";
 import * as NotificationService from "../api/notifications/notifications.service";
 import { createTransport, Transporter } from "nodemailer";
@@ -219,7 +219,15 @@ export class NotificationJob {
   /**
    * Process in-app notification (mark as ready for client retrieval)
    */
-  private async processInAppNotification(notification: any): Promise<void> {
+  private async processInAppNotification(
+    notification: Notification & {
+      user: {
+        id: string;
+        username: string;
+        email: string;
+      };
+    }
+  ): Promise<void> {
     // In a real system, this might involve websockets or push notifications
     // Just ensure the notification is properly stored
     logger.debug(
